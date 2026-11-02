@@ -105,7 +105,7 @@ const myOrders=()=>!ME()?[]:S.orders.filter(o=>o.by===ME().name&&o.status!=='don
 const SCREENS={
 login(){
   const list=S.staff.filter(p=>p.on&&can(p.role,'waiterApp'));
-  const link=MODE!=='local'?'':`<div class="card" style="margin-top:12px;border-color:var(--amber)">
+  const link=MODE!=='local'||!CLOUD_READY?'':`<div class="card" style="margin-top:12px;border-color:var(--amber)">
     <h3 style="margin:0 0 6px">📡 هذا الموبايل غير مربوط بالمطعم</h3>
     <p class="muted" style="margin:0 0 10px;font-size:14px">امسح رمز QR من لوحة الإدارة (الإعدادات ← المزامنة عبر الإنترنت)، أو أدخل رمز المطعم:</p>
     <div class="row"><input type="text" id="joinCode" class="ltr" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" style="flex:1;min-width:0"><button class="btn primary" onclick="join(this)">ربط</button></div></div>`;

@@ -139,7 +139,9 @@ function migrate(){
 //  server — خادم المطعم (server.py) على نفس شبكة الواي فاي
 //  cloud  — المزامنة عبر الإنترنت (Supabase) إذا رُبط الجهاز برمز المطعم
 //  local  — هذا المتصفح فقط
-const CLOUD={url:'https://pxxgydllfustqkpkfiqn.supabase.co',key:'sb_publishable_I2L_KEOwIXjyuCOue4w_3g_MMhYImIU'};
+// مشروع Supabase الخاص بالمطعم (منفصل عن أي برنامج آخر). اتركهما فارغين لإيقاف المزامنة عبر الإنترنت.
+const CLOUD={url:'', key:''};
+const CLOUD_READY=!!(CLOUD.url&&CLOUD.key);
 const KEY='rms-proto-v1', CKEY='rms-cloud', CCACHE='rms-cloud-cache';
 let MODE='local';
 let S=null, V=0, putTimer=null, putting=false, dirty=false, online=true;
@@ -186,7 +188,7 @@ async function loadState(){
       return setOnline(true);
     }
   }
-  if(cloudCode){MODE='cloud';return cloudLoad()}
+  if(cloudCode&&CLOUD_READY){MODE='cloud';return cloudLoad()}
   MODE='local';
   try{S=JSON.parse(lsGet(KEY))}catch(e){}
   if(!S) S=SEED();

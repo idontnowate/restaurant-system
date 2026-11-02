@@ -581,6 +581,7 @@ const MODE_TEXT={
 const appLink=(page,code)=>new URL(page,location.href).href.split('#')[0]+'#r='+code;
 function syncBody(){
   if(MODE==='server') return `<div class="set-toggle"><span><strong>متصل بخادم المطعم</strong><span class="hint">${MODE_TEXT.server}. المزامنة عبر الإنترنت تُستخدم عند فتح النظام من رابط الموقع بدل الخادم المحلي.</span></span><span class="net"><i></i> متصل</span></div>`;
+  if(!CLOUD_READY) return `<div class="set-toggle"><span><strong>غير مُعدّة بعد</strong><span class="hint">المزامنة عبر الإنترنت تحتاج مشروع Supabase خاص بالمطعم. ضع رابطه ومفتاحه في ملف core.js (CLOUD) ثم حدّث الصفحة.</span></span></div>`;
   if(MODE==='cloud') return `
     <div class="set-toggle"><span><strong>الحالة</strong><span class="hint">${MODE_TEXT.cloud}</span></span><span class="net ${online?'':'off'}"><i></i> ${online?'متصل':'غير متصل'}</span></div>
     <div class="set-toggle"><span><strong>رمز المطعم</strong><span class="hint">سري — من يملكه يستطيع رؤية بيانات المطعم وتعديلها. أعطه لموظفيك فقط.</span>
