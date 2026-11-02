@@ -140,7 +140,7 @@ function migrate(){
 //  cloud  — المزامنة عبر الإنترنت (Supabase) إذا رُبط الجهاز برمز المطعم
 //  local  — هذا المتصفح فقط
 // مشروع Supabase الخاص بالمطعم (منفصل عن أي برنامج آخر). اتركهما فارغين لإيقاف المزامنة عبر الإنترنت.
-const CLOUD={url:'', key:''};
+const CLOUD={url:'https://pjgskvedvswfshiigykk.supabase.co', key:'sb_publishable_iwliAUV1iaP6D5GFBdtBCQ_YEthFLao'};
 const CLOUD_READY=!!(CLOUD.url&&CLOUD.key);
 const KEY='rms-proto-v1', CKEY='rms-cloud', CCACHE='rms-cloud-cache';
 let MODE='local';
