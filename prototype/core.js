@@ -136,7 +136,8 @@ function migrate(){
 
 /* ============ الحفظ والمزامنة ============ */
 const KEY='rms-proto-v1';
-const SERVER=location.protocol.startsWith('http');
+// يُحسم عند التحميل: إذا لم يُعثر على الخادم (مثلاً رابط معاينة منشور) نعمل محلياً في المتصفح
+let SERVER=location.protocol.startsWith('http');
 let S=null, V=0, putTimer=null, putting=false, dirty=false, online=true;
 let onRemote=()=>{};   // تضعها كل صفحة: ماذا تفعل عند وصول تحديث من جهاز آخر
 
@@ -151,10 +152,16 @@ function setOnline(v){
 }
 async function loadState(){
   if(SERVER){
-    const r=await api('/api/state');
-    if(r.state){S=r.state;V=r.version;migrate()}
-    else{S=SEED();await pushNow()}
-  }else{
+    let r=null;
+    try{r=await api('/api/state')}catch(e){SERVER=false}
+    if(r&&!('state' in r)) SERVER=false;   // صفحة ليست خادم المطعم
+    if(SERVER){
+      if(r.state){S=r.state;V=r.version;migrate()}
+      else{S=SEED();await pushNow()}
+      return;
+    }
+  }
+  {
     try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
     if(!S) S=SEED();
     migrate();
@@ -187,8 +194,8 @@ async function action(op){
   return S;
 }
 // فحص التحديثات من الأجهزة الأخرى
-if(SERVER) setInterval(async()=>{
-  if(putting||dirty||!S) return;
+setInterval(async()=>{
+  if(!SERVER||putting||dirty||!S) return;
   try{
     const r=await api('/api/version'); setOnline(true);
     if(r.version===V) return;
