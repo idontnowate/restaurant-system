@@ -5,9 +5,9 @@
  * - الخطوط من Google تُحفظ عند أول تحميل.
  * عند تغيير قائمة الملفات ارفع رقم CACHE.
  */
-const CACHE = 'restaurant-v2';
+const CACHE = 'restaurant-v3';
 const FILES = [
-  'admin.html', 'waiter.html', 'connect.html', 'core.js', 'theme.css', 'pwa.js', 'vendor/qrcode-1.0.0.min.js',
+  'admin.html', 'waiter.html', 'connect.html', 'login.html', 'core.js', 'theme.css', 'pwa.js', 'vendor/qrcode-1.0.0.min.js',
   'manifest.webmanifest', 'waiter.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png'
 ];

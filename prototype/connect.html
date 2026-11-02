@@ -52,13 +52,12 @@ function show(links,note){
   links.forEach((l,i)=>new QRCode(document.getElementById('qr'+i),{text:l[1],width:400,height:400,correctLevel:QRCode.CorrectLevel.M}));
 }
 function cloud(){
-  let code=null; try{code=localStorage.getItem('rms-cloud')}catch(e){}
-  if(!code){document.getElementById('codes').innerHTML='<div class="empty card">⚠ فعّل المزامنة أولاً من لوحة الإدارة: الإعدادات ← المزامنة عبر الإنترنت</div>';return}
-  const url=p=>new URL(p,location.href).href.split('#')[0]+'#r='+code;
+  // عبر الإنترنت: يكفي فتح الرابط؛ كل موظف يدخل باسم المستخدم وكلمة المرور الخاصة به
+  const url=p=>new URL(p,location.href).href.split('#')[0];
   document.getElementById('tips').hidden=true;
-  show([['🧑‍🍳 تطبيق الويتر',url('waiter.html'),'للويترية: إرسال الطلبات للمطبخ','الرابط يحتوي رمز المطعم'],
-        ['🖥️ لوحة الإدارة',url('admin.html'),'للكاشير والمطبخ والمدير','الرابط يحتوي رمز المطعم']],
-       'امسح الرمز بكاميرا الموبايل — يعمل من أي مكان بوجود الإنترنت. <b>لا تنشر هذه الرموز</b>: فيها مفتاح بيانات المطعم.');
+  show([['🧑‍🍳 تطبيق الويتر',url('waiter.html'),'للويترية: إرسال الطلبات للمطبخ'],
+        ['🖥️ لوحة الإدارة',url('admin.html'),'للكاشير والمطبخ والمدير']],
+       'امسح الرمز بكاميرا الموبايل — يعمل من أي مكان بوجود الإنترنت. يدخل كل موظف باسم المستخدم وكلمة المرور التي أعطاها له المدير، ويمكن تثبيته كتطبيق من قائمة المتصفح.');
 }
 fetch('/api/info').then(r=>r.json()).then(({ips,port})=>{
   const base=`http://${ips[0]||location.hostname}:${port}`;

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>لوحة المزوّد</title>
+<script>
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<style>
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.top h1{margin:0;font-size:22px}.top .spacer{flex:1}
+.logo{width:42px;height:42px;border-radius:12px;overflow:hidden;flex:none}.logo img{width:100%;height:100%}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi .label{color:var(--muted);font-size:13px}.kpi .val{font-size:26px;font-weight:800}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .spacer{flex:1}
+td .sub{color:var(--muted);font-size:12px}
+.acts{display:flex;gap:4px;flex-wrap:wrap}
+.login{min-height:100vh;display:grid;place-items:center;padding:16px}
+.login form{width:min(380px,100%);padding:26px}
+.login label{display:flex;flex-direction:column;gap:6px;font-weight:600;margin-bottom:14px}
+.err{background:var(--red-soft);color:var(--red);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-weight:600;font-size:14px}
+dialog{width:min(600px,calc(100vw - 24px))}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.dlg-head h2{margin:0}
+.dlg-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.dlg-foot .spacer{flex:1}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.plans button{padding:12px 6px;border-radius:14px;border:1px solid var(--btn-edge);background:var(--btn-bg);font-weight:700}
+.plans button.sel{background:var(--hl);color:var(--hl-text);box-shadow:var(--hl-shadow)}
+.cred{background:var(--surface-2);border-radius:16px;padding:14px;line-height:2;white-space:pre-line}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<dialog id="dlg"></dialog>
+<div class="toast" id="toast"></div>
+<script src="core.js"></script>
+<script>
+/* لوحة المزوّد: صاحب البرنامج يدير المطاعم المشتركة واشتراكاتها وحسابات مدرائها.
+ * الدخول بحساب المزوّد الذي يُنشأ مرة واحدة من Supabase (راجع supabase/restaurant-sync.sql). */
+const PK='rms-provider';
+let PS=null; try{PS=JSON.parse(lsGet(PK))}catch(e){}
+let LIST=[], view={q:'',f:'all'};
+const D=864e5;
+const days=r=>Math.ceil((new Date(r.expires_at)-Date.now())/D);
+const stateOf=r=>!r.active?'suspended':days(r)<0?'expired':days(r)<=7?'expiring':'active';
+const STATE={active:['b-green','فعّال'],expiring:['b-amber','ينتهي قريباً'],expired:['b-red','منتهي'],suspended:['b-gray','موقوف']};
+const dstr=t=>t?new Date(t).toLocaleDateString('en-GB'):'—';
+const ago=t=>{if(!t)return 'لم يُستخدم بعد';const m=Math.floor((Date.now()-new Date(t))/6e4);return m<3?'متصل الآن':m<60?`قبل ${m} د`:m<1440?`قبل ${Math.floor(m/60)} س`:`قبل ${Math.floor(m/1440)} يوم`};
+const P_=(fn,args={})=>rpc(fn,{p_token:PS?.token,...args},{noAuth:true}).catch(e=>{if(e.code==='AUTH'){lsSet(PK,null);PS=null;draw()}throw e});
+const openDlg=(t,b,f='')=>{const d=$('#dlg');d.innerHTML=`<div class="dlg-head"><h2>${t}</h2><button class="btn icon-btn" onclick="$('#dlg').close()">✕</button></div>${b}${f?`<div class="dlg-foot">${f}</div>`:''}`;if(!d.open)d.showModal()};
+const closeDlg=()=>$('#dlg').close();
+const v=id=>$('#'+id)?.value?.trim()??'';
+const genPass=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';return [...crypto.getRandomValues(new Uint8Array(8))].map(x=>a[x%a.length]).join('')};
+
+function draw(){
+  if(!CLOUD_READY) return $('#app').innerHTML='<div class="login"><div class="card">⚠ لم يُضبط Supabase في core.js</div></div>';
+  if(!PS) return drawLogin();
+  const s={all:LIST.length,active:0,expiring:0,expired:0,suspended:0}; LIST.forEach(r=>s[stateOf(r)]++);
+  const q=view.q.trim();
+  const rows=LIST.filter(r=>(view.f==='all'||stateOf(r)===view.f)&&(!q||[r.name,r.owner_name,r.phone,r.city,...r.managers.map(m=>m.username)].join(' ').includes(q)));
+  $('#app').innerHTML=`<div class="wrap">
+  <div class="top"><div class="logo"><img src="icons/icon-192.png" alt=""></div><div><h1>لوحة المزوّد</h1><div class="muted" style="font-size:13px">إدارة المطاعم المشتركة واشتراكاتها</div></div>
+    <span class="spacer"></span><span class="muted">👤 ${esc(PS.name||PS.username)}</span>
+    <button class="btn sm" onclick="pwDlg()">🔑 كلمة المرور</button><button class="btn sm" onclick="out()">خروج</button>
+    <button class="btn icon-btn" onclick="quickTheme(event)">🌓</button></div>
+  <div class="kpis">
+    <div class="card kpi"><div class="label">كل المطاعم</div><div class="val">${num(s.all)}</div></div>
+    <div class="card kpi"><div class="label">فعّالة</div><div class="val" style="color:var(--green)">${num(s.active+s.expiring)}</div></div>
+    <div class="card kpi"><div class="label">تنتهي خلال 7 أيام</div><div class="val" style="color:var(--amber)">${num(s.expiring)}</div></div>
+    <div class="card kpi"><div class="label">منتهية</div><div class="val" style="color:var(--red)">${num(s.expired)}</div></div>
+    <div class="card kpi"><div class="label">موقوفة</div><div class="val">${num(s.suspended)}</div></div>
+  </div>
+  <div class="toolbar"><button class="btn primary" onclick="editDlg(null)">＋ مطعم جديد</button>
+    <input type="search" placeholder="🔍 الاسم، الهاتف، المدينة، اسم المستخدم" value="${esc(view.q)}" onchange="view.q=this.value;draw()" style="flex:1;max-width:340px">
+    <div class="pills" style="margin:0">${[['all','الكل'],['active','فعّال'],['expiring','ينتهي قريباً'],['expired','منتهي'],['suspended','موقوف']].map(([k,t])=>`<button class="${view.f===k?'active':''}" onclick="view.f='${k}';draw()">${t} ${k!=='all'?`<span class="muted">(${s[k]})</span>`:''}</button>`).join('')}</div>
+    <span class="spacer"></span><button class="btn" onclick="load()">↻ تحديث</button></div>
+  <div class="card table-wrap"><table><tr><th>المطعم</th><th>المدير (الدخول)</th><th>الموظفون</th><th>طلبات 30 يوماً</th><th>آخر نشاط</th><th>الاشتراك</th><th>الحالة</th><th></th></tr>
+  ${rows.map(r=>{const st=stateOf(r),d=days(r);return `<tr>
+    <td><b>${esc(r.name)}</b><div class="sub">${esc(r.owner_name)}${r.phone?' · <span class="ltr">'+esc(r.phone)+'</span>':''}${r.city?' · '+esc(r.city):''}</div>${r.notes?`<div class="sub">📝 ${esc(r.notes)}</div>`:''}</td>
+    <td class="ltr" style="text-align:end">${r.managers.map(m=>esc(m.username)).join('<br>')||'—'}</td>
+    <td>${num(r.users)} / ${num(r.max_users)}</td><td>${num(r.orders_30d)}</td><td class="sub">${ago(r.last_seen)}</td>
+    <td>${dstr(r.expires_at)}<div class="sub">${d>=0?`باقي ${num(d)} يوم`:`انتهى قبل ${num(-d)} يوم`}</div></td>
+    <td><span class="badge ${STATE[st][0]}">${STATE[st][1]}</span></td>
+    <td><div class="acts"><button class="btn sm primary" onclick="renewDlg('${r.id}')">تجديد</button><button class="btn sm" onclick="usersDlg('${r.id}')">الحسابات</button>
+      <button class="btn sm" onclick="editDlg('${r.id}')">تعديل</button><button class="btn sm" onclick="toggleActive('${r.id}')">${r.active?'إيقاف':'تفعيل'}</button></div></td></tr>`}).join('')
+    ||`<tr><td colspan="8" class="empty">${LIST.length?'لا توجد نتائج':'لا توجد مطاعم بعد — اضغط «＋ مطعم جديد»'}</td></tr>`}</table></div>
+  <p class="muted" style="font-size:13px;margin-top:12px">💡 عند انتهاء الاشتراك أو إيقافه يتوقف المطعم عن العمل فوراً على كل أجهزته، وتبقى بياناته محفوظة وتعود عند التجديد.<br>
+  رابط النظام للمطاعم: <b class="ltr">${esc(new URL('login.html',location.href).href)}</b></p></div>`;
+}
+function drawLogin(err=''){
+  $('#app').innerHTML=`<div class="login"><form class="card" onsubmit="event.preventDefault();doLogin()">
+    <div style="text-align:center;font-size:40px">🛠️</div><h2 style="text-align:center;margin:4px 0 18px">لوحة المزوّد</h2>
+    ${err?`<div class="err">${esc(err)}</div>`:''}
+    <label>اسم المستخدم<input type="text" id="lu" class="ltr" autocomplete="username" autocapitalize="none" required></label>
+    <label>كلمة المرور<input type="password" id="lp" class="ltr" autocomplete="current-password" required></label>
+    <button class="btn primary lg block" id="lb">دخول</button></form></div>`;
+  $('#lu').focus();
+}
+async function doLogin(){
+  $('#lb').disabled=true;
+  try{const r=await rpc('rms_provider_login',{p_username:v('lu'),p_password:$('#lp').value},{noAuth:true});
+    if(r.error) throw {code:r.error};
+    PS=r; lsSet(PK,JSON.stringify(r)); await load();
+  }catch(e){drawLogin(errText(e))}
+}
+async function out(){try{await rpc('rms_logout',{p_token:PS.token},{noAuth:true})}catch(e){}lsSet(PK,null);PS=null;draw()}
+async function load(){
+  try{LIST=await P_('rms_provider_list')}catch(e){if(PS)toast('⚠ '+errText(e))}
+  draw();
+}
+const byId=id=>LIST.find(r=>r.id===id);
+async function saveR(obj,msg){
+  try{const r=await P_('rms_provider_restaurant_save',{p_r:obj});await load();if(msg)toast(msg);return r}
+  catch(e){toast('⚠ '+errText(e));throw e}
+}
+
+/* ---- مطعم جديد / تعديل ---- */
+let plan=1;
+function editDlg(id){
+  const r=id?byId(id):null; plan=1;
+  openDlg(r?'تعديل مطعم':'مطعم جديد',`<div class="form">
+    <label class="full">اسم المطعم<input type="text" id="rn" value="${esc(r?.name||'')}"></label>
+    <label>اسم المالك<input type="text" id="ro" value="${esc(r?.owner_name||'')}"></label>
+    <label>الهاتف<input type="tel" id="rp" class="ltr" value="${esc(r?.phone||'')}"></label>
+    <label>المدينة<input type="text" id="rc" value="${esc(r?.city||'')}"></label>
+    <label>الحد الأقصى للموظفين<input type="number" id="rm" class="ltr" min="1" value="${r?.max_users||25}"></label>
+    <label class="full">ملاحظات (لك فقط)<input type="text" id="rt" value="${esc(r?.notes||'')}" placeholder="السعر المتفق عليه، طريقة الدفع…"></label>
+  </div>
+  ${r?'':`<div class="sub-title">مدة الاشتراك</div>
+  <div class="plans">${[[0.5,'تجربة 14 يوم'],[1,'شهر'],[3,'3 أشهر'],[6,'6 أشهر'],[12,'سنة']].map(([m,t])=>`<button type="button" class="${m===1?'sel':''}" onclick="plan=${m};this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${t}</button>`).join('')}</div>
+  <div class="sub-title">حساب مدير المطعم</div>
+  <div class="form"><label>اسم المدير<input type="text" id="mn" placeholder="مثلاً: أبو علي"></label>
+    <label>اسم المستخدم<input type="text" id="mu" class="ltr" autocapitalize="none" placeholder="diyar.admin"></label>
+    <label class="full">كلمة المرور<span class="row"><input type="text" id="mp" class="ltr" value="${genPass()}" style="flex:1"><button type="button" class="btn sm" onclick="$('#mp').value=genPass()">🎲 توليد</button></span></label></div>
+  <p class="muted" style="font-size:12.5px">💡 اسم المستخدم بالإنجليزي والأرقام فقط (. _ - مسموحة)، وفريد على مستوى البرنامج. المدير يضيف موظفيه بنفسه من لوحة المطعم.</p>`}`,
+  `${r?`<button class="btn danger" onclick="delDlg('${r.id}')">حذف المطعم</button>`:''}<span class="spacer"></span><button class="btn" onclick="closeDlg()">إلغاء</button><button class="btn primary" id="sv" onclick="saveEdit(${r?`'${r.id}'`:'null'})">${r?'حفظ':'إنشاء المطعم'}</button>`);
+}
+async function saveEdit(id){
+  const o={name:v('rn'),owner_name:v('ro'),phone:v('rp'),city:v('rc'),max_users:+v('rm')||25,notes:v('rt')};
+  if(!o.name) return toast('أدخل اسم المطعم');
+  if(id){o.id=id;await saveR(o,'✓ تم الحفظ');return closeDlg()}
+  const mg={name:v('mn')||'المدير',username:v('mu').toLowerCase(),password:v('mp')};
+  if(!mg.username) return toast('أدخل اسم مستخدم للمدير');
+  o.manager=mg; o.expires_at=new Date(Date.now()+(plan<1?14:plan*30)*D).toISOString();
+  $('#sv').disabled=true;
+  try{await saveR(o)}catch(e){$('#sv').disabled=false;return}
+  credDlg(o.name,mg.name,mg.username,mg.password,o.phone);
+}
+function credDlg(rest,name,user,pass,phone){
+  const link=new URL('login.html',location.href).href;
+  const text=`أهلاً ${name} 👋\nتم تفعيل نظام إدارة المطعم لـ «${rest}».\n\nرابط الدخول: ${link}\nاسم المستخدم: ${user}\nكلمة المرور: ${pass}\n\nبعد الدخول غيّر كلمة المرور من «حسابي»، وأضف موظفيك من صفحة «الموظفين».`;
+  const wa=`https://wa.me/${(phone||'').replace(/\D/g,'').replace(/^0/,'964')}?text=${encodeURIComponent(text)}`;
+  openDlg('✓ بيانات الدخول',`<p class="muted">أرسل هذه البيانات لمدير المطعم. <b>كلمة المرور لا تظهر مرة أخرى.</b></p><div class="cred" id="credTxt">${esc(text)}</div>`,
+    `<button class="btn" onclick="navigator.clipboard?.writeText($('#credTxt').textContent).then(()=>toast('✓ تم النسخ'))">📋 نسخ</button>
+     <a class="btn primary" style="text-decoration:none" target="_blank" rel="noopener" href="${wa}">💬 إرسال واتساب</a>`);
+}
+
+/* ---- التجديد والإيقاف ---- */
+function renewDlg(id){
+  const r=byId(id), base=Math.max(Date.now(),new Date(r.expires_at).getTime());
+  openDlg(`تجديد اشتراك «${esc(r.name)}»`,`<p class="muted">ينتهي حالياً: <b>${dstr(r.expires_at)}</b>. التجديد يُضاف من ${days(r)>0?'تاريخ الانتهاء':'اليوم'}.</p>
+    <div class="plans">${[[1,'شهر'],[3,'3 أشهر'],[6,'6 أشهر'],[12,'سنة']].map(([m,t])=>`<button onclick="renew('${id}',${base+m*30*D})">＋ ${t}<div class="muted" style="font-size:11px">حتى ${dstr(base+m*30*D)}</div></button>`).join('')}</div>
+    <div class="sub-title">أو تاريخ محدد</div><div class="row"><input type="date" id="rd" class="ltr"><button class="btn" onclick="v('rd')&&renew('${id}',new Date(v('rd')+'T23:59').getTime())">تعيين</button></div>`);
+}
+async function renew(id,t){const r=byId(id);await saveR({id,name:r.name,expires_at:new Date(t).toISOString(),active:true},`✓ تم التجديد حتى ${dstr(t)}`);closeDlg()}
+async function toggleActive(id){
+  const r=byId(id);
+  if(r.active&&!confirm(`إيقاف «${r.name}»؟ سيتوقف النظام عندهم فوراً (البيانات محفوظة).`)) return;
+  await saveR({id,name:r.name,active:!r.active},r.active?'تم الإيقاف':'✓ تم التفعيل');
+}
+function delDlg(id){
+  const r=byId(id);
+  openDlg('⚠️ حذف المطعم نهائياً',`<p>سيتم حذف <b>${esc(r.name)}</b> مع كل بياناته وحسابات موظفيه نهائياً، ولا يمكن التراجع.</p>
+    <label style="display:flex;flex-direction:column;gap:6px;font-weight:600">للتأكيد اكتب اسم المطعم<input type="text" id="dc"></label>`,
+    `<button class="btn" onclick="closeDlg()">إلغاء</button><button class="btn danger" onclick="doDel('${id}')">حذف نهائي</button>`);
+}
+async function doDel(id){
+  const r=byId(id); if(v('dc')!==r.name) return toast('الاسم غير مطابق');
+  try{await P_('rms_provider_restaurant_delete',{p_id:id});closeDlg();await load();toast('تم الحذف')}catch(e){toast('⚠ '+errText(e))}
+}
+
+/* ---- حسابات المطعم ---- */
+async function usersDlg(id){
+  const r=byId(id);
+  let users=[]; try{users=USERS=await P_('rms_provider_users',{p_restaurant:id})}catch(e){return toast('⚠ '+errText(e))}
+  openDlg(`حسابات «${esc(r.name)}»`,`<div class="table-wrap"><table><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>آخر دخول</th><th></th></tr>
+    ${users.map(u=>`<tr><td>${esc(u.name)}${u.active?'':' <span class="badge b-gray">موقوف</span>'}</td><td class="ltr" style="text-align:end">${esc(u.username)}</td><td>${u.role}</td>
+      <td class="muted" style="font-size:12px">${u.last_login?dstr(u.last_login):'—'}</td><td><button class="btn sm" onclick="resetPw('${u.id}','${id}')">كلمة مرور جديدة</button></td></tr>`).join('')}</table></div>
+    <p class="muted" style="font-size:12.5px">💡 إعادة تعيين كلمة المرور تُخرج الموظف من كل أجهزته وتفعّل حسابه إن كان موقوفاً.</p>`);
+}
+let USERS=[];
+async function resetPw(uid_,rid){
+  const u=USERS.find(x=>x.id===uid_), r=byId(rid), user=u.username, p=genPass();
+  if(!confirm(`تعيين كلمة مرور جديدة لـ ${user}؟`)) return;
+  try{await P_('rms_provider_reset_password',{p_user:uid_,p_password:p})}catch(e){return toast('⚠ '+errText(e))}
+  credDlg(r.name,u.name,user,p,r.phone);
+}
+function pwDlg(){
+  openDlg('🔑 تغيير كلمة مرور المزوّد',`<div class="form"><label class="full">الحالية<input type="password" id="po" class="ltr"></label>
+    <label>الجديدة<input type="password" id="pn" class="ltr"></label><label>تأكيد<input type="password" id="pn2" class="ltr"></label></div>`,
+    `<button class="btn primary" onclick="chPw()">حفظ</button>`);
+}
+async function chPw(){
+  if($('#pn').value!==$('#pn2').value) return toast('غير متطابقتين');
+  try{const r=await P_('rms_provider_change_password',{p_old:$('#po').value,p_new:$('#pn').value});if(r.error)return toast('كلمة المرور الحالية غير صحيحة');closeDlg();toast('✓ تم التغيير')}
+  catch(e){toast('⚠ '+errText(e))}
+}
+PS?load():draw();
+</script>
+</body>
+</html>
