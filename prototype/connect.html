@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ربط الأجهزة</title>
+<script>
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+.wrap{max-width:820px;margin:0 auto;padding:24px 16px}
+h1{margin:0 0 4px;font-size:24px}
+.codes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:20px}
+.code{text-align:center;padding:22px}
+.qr{background:#fff;padding:14px;border-radius:18px;display:inline-block;margin:10px 0}
+.qr img,.qr canvas{display:block;width:200px;height:200px}
+.url{font-size:15px;font-weight:700;word-break:break-all}
+ol{margin:0;padding-inline-start:20px;line-height:2}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📱 ربط الموبايلات والأجهزة</h1>
+  <p class="muted" style="margin:0">امسح الرمز بكاميرا الموبايل. يجب أن يكون الموبايل على <b>نفس شبكة الواي فاي</b> لهذا الجهاز.</p>
+  <div class="codes" id="codes"><div class="empty card">جاري التحميل…</div></div>
+  <div class="card" style="margin-top:16px">
+    <h3>إذا لم يفتح الرابط على الموبايل</h3>
+    <ol>
+      <li>تأكد أن الموبايل متصل بنفس الواي فاي (وليس بيانات الهاتف).</li>
+      <li>على هذا الكمبيوتر: عند ظهور نافذة جدار الحماية لـ Python اختر <b>السماح</b> للشبكات الخاصة.</li>
+      <li>تأكد أن نافذة الخادم (تشغيل-الخادم.bat) ما زالت مفتوحة.</li>
+    </ol>
+  </div>
+</div>
+<script>
+fetch('/api/info').then(r=>r.json()).then(({ips,port})=>{
+  const base=`http://${ips[0]||location.hostname}:${port}`;
+  const links=[['🧑‍🍳 تطبيق الويتر',base+'/waiter.html','للويترية: إرسال الطلبات للمطبخ'],['🖥️ لوحة الإدارة',base+'/','للكاشير والمطبخ والمدير']];
+  document.getElementById('codes').innerHTML=links.map((l,i)=>`<div class="card code"><h3 style="margin:0">${l[0]}</h3><div class="muted" style="font-size:13px">${l[2]}</div>
+    <div class="qr" id="qr${i}"></div><div class="url ltr">${l[1]}</div></div>`).join('');
+  links.forEach((l,i)=>new QRCode(document.getElementById('qr'+i),{text:l[1],width:400,height:400,correctLevel:QRCode.CorrectLevel.M}));
+}).catch(()=>{document.getElementById('codes').innerHTML='<div class="empty card">⚠ افتح هذه الصفحة من خلال الخادم (تشغيل-الخادم.bat)</div>'});
+</script>
+</body>
+</html>

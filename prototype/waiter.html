@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>تطبيق الويتر</title>
+<script>
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+.wrap{max-width:640px;margin:0 auto;padding:12px 14px}
+.hdr{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--strong);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border-bottom:1px solid var(--border)}
+.hdr .logo{width:36px;height:36px;border-radius:11px;background:var(--grad);color:var(--on-grad);display:grid;place-items:center;font-size:19px;flex:none}
+.hdr b{display:block;line-height:1.2}.hdr small{color:var(--muted);font-size:12px}
+.hdr .spacer{flex:1}
+.title-row{display:flex;align-items:center;gap:10px;margin:6px 0 12px}
+.title-row h2{margin:0;font-size:18px;flex:1}
+.section-title{display:flex;align-items:center;gap:8px;margin:16px 0 10px;font-weight:800}
+.floor{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.tbl{padding:12px 6px;cursor:pointer}
+.tbl b{font-size:24px}
+.tbl .mini{margin-top:6px}
+.items{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+@media (max-width:380px){.items{grid-template-columns:1fr 1fr}}
+
+/* شريط السلة */
+.cartbar{position:fixed;inset-inline:12px;bottom:calc(78px + env(safe-area-inset-bottom));max-width:616px;margin:0 auto;z-index:25;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 16px;border-radius:999px;background:var(--grad);color:var(--on-grad);box-shadow:var(--shine),var(--grad-shadow),0 10px 30px rgba(0,0,0,.35);border:0;font-weight:800;font-size:16px}
+.cartbar .n{background:rgba(0,0,0,.2);border-radius:99px;min-width:30px;height:30px;display:grid;place-items:center}
+.cartbar .t{flex:1;text-align:start}
+
+/* شريط التبويب السفلي */
+.tabbar{position:fixed;inset-inline:0;bottom:0;z-index:30;display:flex;justify-content:center;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--strong);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border-top:1px solid var(--border)}
+.tabbar[hidden]{display:none}
+.tabbar button{flex:1;max-width:200px;border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;padding:6px;border-radius:16px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.tabbar button span{font-size:22px;line-height:1}
+.tabbar button.active{background:var(--hl);color:var(--hl-text);box-shadow:var(--hl-shadow)}
+.tabbar .dotn{position:absolute;top:2px;inset-inline-end:calc(50% - 26px);background:var(--red);color:#fff;border-radius:99px;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px}
+
+/* السلة */
+dialog.sheet{margin:auto auto 0;width:100%;max-width:640px;border-radius:28px 28px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh}
+.cline{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.cline input{grid-column:1/-1;font-size:13px;padding:6px 10px}
+.sum{display:flex;justify-content:space-between;padding:4px 0}
+.sum.total{font-size:19px;font-weight:800;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+
+/* طلباتي */
+.order{margin-bottom:12px}
+.order header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.order ul{margin:0 0 10px;padding:0;list-style:none;color:var(--muted);font-size:14px}
+.order.ready{border-color:var(--green);box-shadow:var(--shadow),0 0 0 2px var(--green-soft)}
+.who{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}
+.who button{padding:18px 10px;border-radius:22px;text-align:center;font-weight:800;font-size:16px}
+.who button span{display:block;font-size:34px;margin-bottom:6px}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="logo" id="logo">🍽</div>
+  <div onclick="if(ME()&&confirm('تبديل المستخدم؟'))logout()" style="cursor:pointer"><b id="rName">تطبيق الويتر</b><small id="wName"></small></div>
+  <div class="spacer"></div>
+  <span class="net"><i></i> متصل</span>
+  <button class="btn icon-btn" onclick="quickTheme(event)" title="المظهر">🌓</button>
+</header>
+<main class="wrap" id="view"><div class="empty">جاري التحميل…</div></main>
+<div id="cartbarHost"></div>
+<nav class="tabbar" id="tabbar" hidden></nav>
+<div class="toast" id="toast"></div>
+
+<dialog class="sheet" id="cartDlg"></dialog>
+
+<script src="core.js"></script>
+<script>
+const ui={screen:'tables',floor:null,table:null,cat:'الكل',cart:[]};
+const ME=()=>S.staff.find(p=>p.id===P.waiter);
+let known={};   // آخر حالة معروفة لطلباتي: لتنبيه الويتر عندما يجهز طلبه
+
+function render(){
+  $('#rName').textContent=st().name; $('#logo').textContent=st().logo||'🍽';
+  const me=ME();
+  if(!me||!can(me.role,'waiterApp')){ui.screen='login'}
+  $('#wName').textContent=me?`👤 ${me.name}`:'اختر اسمك للبدء';
+  $('#view').innerHTML=SCREENS[ui.screen]();
+  // شريط السلة والتبويب
+  const n=ui.cart.reduce((s,l)=>s+l.qty,0);
+  $('#cartbarHost').innerHTML=ui.screen==='order'&&n?`<button class="cartbar" onclick="openCart()"><span class="n">${num(n)}</span><span class="t">عرض الطلب وإرساله</span><span>${fmt(calc({items:ui.cart,type:'صالة'}).t)}</span></button>`:'';
+  const ready=myOrders().filter(o=>o.status==='ready').length;
+  $('#tabbar').hidden=ui.screen==='login';
+  $('#tabbar').innerHTML=`<button class="${ui.screen!=='mine'?'active':''}" onclick="ui.screen='tables';render()"><span>🪑</span>الطاولات</button>
+    <button class="${ui.screen==='mine'?'active':''}" onclick="ui.screen='mine';render()"><span>🧾</span>طلباتي${ready?`<i class="dotn">${num(ready)}</i>`:''}</button>`;
+}
+const myOrders=()=>!ME()?[]:S.orders.filter(o=>o.by===ME().name&&o.status!=='done'&&isToday(o.createdAt)).sort((a,b)=>b.createdAt-a.createdAt);
+
+const SCREENS={
+login(){
+  const list=S.staff.filter(p=>p.on&&can(p.role,'waiterApp'));
+  return `<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">👋</div><h2 style="margin:6px 0">أهلاً بك</h2>
+    <p class="muted" style="margin:0">اختر اسمك لتبدأ استلام الطلبات</p>
+    <div class="who">${list.map(p=>`<button class="btn" onclick="login(${p.id})"><span>🧑‍🍳</span>${esc(p.name)}<div class="muted" style="font-size:12px;font-weight:600">${p.role} · ${p.shift}</div></button>`).join('')||'<div class="empty">لا يوجد موظفون لديهم صلاحية تطبيق الويتر</div>'}</div></div>`;
+},
+
+tables(){
+  if(!S.floors.some(f=>f.id===ui.floor)) ui.floor=S.floors[0]?.id;
+  const f=S.floors.find(x=>x.id===ui.floor);
+  const lbl={free:'فارغة',busy:'مشغولة',bill:'الحساب',res:'محجوزة'};
+  return `<div class="pills">${S.floors.map(x=>`<button class="${x.id===ui.floor?'active':''}" onclick="ui.floor='${x.id}';render()">🏢 ${esc(x.name)}</button>`).join('')}</div>
+  ${f?f.sections.map(s=>{const ts=S.tables.filter(t=>t.section===s.id);if(!ts.length)return '';
+    return `<div class="section-title">${esc(s.name)} <span class="badge b-green">${num(ts.filter(t=>t.status==='free').length)} فارغة</span></div>
+    <div class="floor">${ts.map(t=>{const mine=myOrders().filter(o=>o.table===t.id);
+      return `<div class="tbl t-${t.status}" onclick="pickTable(${t.id})"><span class="muted" style="font-size:12px">طاولة</span><b>${t.id}</b><div class="st">${lbl[t.status]}</div>
+      <div class="muted" style="font-size:12px">👤 ${num(t.seats)}${mine.length?' · 🧾 '+num(mine.length):''}</div>
+      ${t.status==='busy'?`<button class="btn sm mini" onclick="event.stopPropagation();setTable(${t.id},'bill')">طلب الحساب</button>`:''}</div>`}).join('')}</div>`}).join(''):''}`;
+},
+
+order(){
+  const p=tablePlace(ui.table);
+  const cats=['الكل',...S.categories];
+  const list=S.menu.filter(m=>(ui.cat==='الكل'||m.cat===ui.cat)&&m.on);
+  return `<div class="title-row"><button class="btn icon-btn" onclick="leaveOrder()">→</button>
+    <h2>طاولة ${ui.table}<div class="muted" style="font-size:13px;font-weight:600">${esc(p?.f?.name||'')} › ${esc(p?.s?.name||'')}</div></h2></div>
+  <div class="pills">${cats.map(c=>`<button class="${ui.cat===c?'active':''}" onclick="ui.cat='${esc(c)}';render()">${esc(c)}</button>`).join('')}</div>
+  <div class="items">${list.map(m=>{const ok=available(m),q=ui.cart.filter(l=>l.id===m.id).reduce((s,l)=>s+l.qty,0);
+    return `<button class="item ${ok?'':'off'}" ${ok?`onclick="add(${m.id})"`:'disabled'}>${q?`<span class="qbadge">${num(q)}</span>`:''}
+      <div class="pic">${pic(m)}</div><div class="nm">${esc(m.name)}</div><div class="pr">${fmt(m.price)}</div></button>`}).join('')}</div>`;
+},
+
+mine(){
+  const list=myOrders(), lbl={new:['بانتظار المطبخ','b-blue'],preparing:['قيد التحضير','b-amber'],ready:['جاهز — استلمه ✅','b-green']};
+  return `<div class="title-row"><h2>طلباتي الجارية</h2><span class="muted">${num(list.length)}</span></div>
+  ${list.map(o=>`<div class="card order ${o.status==='ready'?'ready':''}"><header><b>#${o.id} · طاولة ${o.table}</b><span class="badge ${lbl[o.status][1]}">${lbl[o.status][0]}</span></header>
+    <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(item(l.id)?.name||'—')}${l.note?` <span style="color:var(--red)">(${esc(l.note)})</span>`:''}</li>`).join('')}</ul>
+    <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px">${timeStr(o.createdAt)} · منذ ${num(mins(o.createdAt))} د</span>
+    ${o.status==='ready'?`<button class="btn sm primary" onclick="delivered('${o.uid}')">تم التقديم للزبون</button>`:''}</div></div>`).join('')
+    ||'<div class="empty card">لا توجد طلبات جارية</div>'}`;
+},
+};
+
+/* ============ العمليات ============ */
+function login(id){P.waiter=id;savePrefs();ui.screen='tables';snapshot();render()}
+function logout(){P.waiter=null;savePrefs();ui.cart=[];render()}
+function pickTable(id){
+  const t=S.tables.find(x=>x.id===id);
+  if(t.status==='res'&&!confirm('الطاولة محجوزة. هل وصل الزبون؟')) return;
+  if(ui.table!==id) ui.cart=[];
+  ui.table=id; ui.cat='الكل'; ui.screen='order'; render(); scrollTo(0,0);
+}
+function leaveOrder(){
+  if(ui.cart.length&&!confirm('في السلة أصناف لم تُرسل. تركها؟')) return;
+  ui.cart=[]; ui.screen='tables'; render();
+}
+function add(id){
+  const l=ui.cart.find(x=>x.id===id&&!x.note); l?l.qty++:ui.cart.push({id,qty:1,note:''});
+  if(navigator.vibrate) navigator.vibrate(15);
+  render();
+}
+function openCart(){renderCart();$('#cartDlg').showModal()}
+function renderCart(){
+  const c=calc({items:ui.cart,type:'صالة'});
+  $('#cartDlg').innerHTML=`<div class="row" style="justify-content:space-between"><h2 style="margin:0">طلب طاولة ${ui.table}</h2><button class="btn icon-btn" onclick="$('#cartDlg').close()">✕</button></div>
+   <div style="overflow:auto;max-height:52vh;margin:10px 0">${ui.cart.map((l,i)=>{const m=item(l.id);return `<div class="cline">
+     <div><b>${esc(m.name)}</b><div class="muted" style="font-size:13px">${fmt(m.price*l.qty)}</div></div>
+     <div class="qty"><button onclick="cq(${i},-1)">−</button><span>${num(l.qty)}</span><button onclick="cq(${i},1)">+</button></div>
+     <input type="text" placeholder="ملاحظة للمطبخ (بدون بصل، حار…)" value="${esc(l.note)}" onchange="ui.cart[${i}].note=this.value"></div>`}).join('')}</div>
+   ${c.sv?`<div class="sum muted"><span>خدمة ${num(st().service)}%</span><span>${fmt(c.sv)}</span></div>`:''}
+   <div class="sum total"><span>الإجمالي</span><span>${fmt(c.t)}</span></div>
+   <button class="btn primary lg block" style="margin-top:12px" id="sendBtn" onclick="send()">🚀 إرسال للمطبخ</button>`;
+}
+function cq(i,d){ui.cart[i].qty+=d;if(ui.cart[i].qty<=0)ui.cart.splice(i,1);if(!ui.cart.length){$('#cartDlg').close();render();return}renderCart();render()}
+async function send(){
+  if(!ui.cart.length) return;
+  $('#sendBtn').disabled=true;
+  const o={uid:uid(),type:'صالة',table:ui.table,items:ui.cart.map(l=>({id:l.id,qty:l.qty,...(l.note?{note:l.note}:{})})),status:'new',pay:null,discount:0,by:ME().name,createdAt:Date.now()};
+  try{await action({type:'order',order:o})}
+  catch(e){$('#sendBtn').disabled=false;return toast('⚠ لا يوجد اتصال بالخادم — حاول مرة أخرى')}
+  const saved=S.orders.find(x=>x.uid===o.uid);
+  known[o.uid]='new';
+  $('#cartDlg').close(); ui.cart=[]; ui.screen='tables'; render();
+  toast(`✓ الطلب #${saved?.id} وصل للمطبخ`); if(navigator.vibrate) navigator.vibrate([30,40,30]);
+}
+async function delivered(u){try{await action({type:'status',uid:u,status:'done'})}catch(e){return toast('⚠ لا يوجد اتصال')}render()}
+async function setTable(id,s){try{await action({type:'table',id,status:s})}catch(e){return toast('⚠ لا يوجد اتصال')}render();toast('تم إبلاغ الكاشير بطلب الحساب')}
+
+// تنبيه عندما يجهز طلب من طلباتي
+function snapshot(){known={};myOrders().forEach(o=>known[o.uid]=o.status)}
+onRemote=()=>{
+  const ready=myOrders().filter(o=>o.status==='ready'&&known[o.uid]&&known[o.uid]!=='ready');
+  snapshot();
+  if(ready.length){
+    beep(1046); setTimeout(()=>beep(1318),180);
+    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+    toast(`🔔 جاهز: ${ready.map(o=>'طاولة '+o.table).join('، ')} — استلم من المطبخ`);
+  }
+  if(!$('#cartDlg').open) render();
+};
+
+loadState().then(()=>{snapshot();render()})
+  .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بخادم المطعم.<br>تأكد أن الموبايل على نفس شبكة الواي فاي ثم حدّث الصفحة.</div>'});
+// تحديث العدادات (منذ كم دقيقة)
+setInterval(()=>{if(ui.screen==='mine')render()},30000);
+</script>
+</body>
+</html>
