@@ -68,7 +68,7 @@ dialog.sheet{margin:auto auto 0;width:100%;max-width:640px;border-radius:28px 28
 <body>
 <header class="hdr">
   <div class="logo" id="logo">🍽</div>
-  <div onclick="if(ME()&&confirm('تبديل المستخدم؟'))logout()" style="cursor:pointer"><b id="rName">تطبيق الويتر</b><small id="wName"></small></div>
+  <div onclick="switchUser()" style="cursor:pointer"><b id="rName">تطبيق الويتر</b><small id="wName"></small></div>
   <div class="spacer"></div>
   <span class="net"><i></i> متصل</span>
   <button class="btn icon-btn" onclick="quickTheme(event)" title="المظهر">🌓</button>
@@ -83,10 +83,12 @@ dialog.sheet{margin:auto auto 0;width:100%;max-width:640px;border-radius:28px 28
 <script src="core.js"></script>
 <script>
 const ui={screen:'tables',floor:null,table:null,cat:'الكل',cart:[]};
-const ME=()=>S.staff.find(p=>p.id===P.waiter);
+// عبر الإنترنت: الويتر هو صاحب الحساب المسجّل. على خادم المطعم: يختار اسمه من القائمة
+const ME=()=>MODE==='cloud'?{...SESSION.user,on:true}:S.staff.find(p=>p.id===P.waiter);
 let known={};   // آخر حالة معروفة لطلباتي: لتنبيه الويتر عندما يجهز طلبه
 
 function render(){
+  if(!$('#view')) return;   // الصفحة استُبدلت (انتهاء الاشتراك أو الجلسة)
   $('#rName').textContent=st().name; $('#logo').textContent=st().logo||'🍽';
   const me=ME();
   if(!me||!can(me.role,'waiterApp')){ui.screen='login'}
@@ -105,10 +107,10 @@ const myOrders=()=>!ME()?[]:S.orders.filter(o=>o.by===ME().name&&o.status!=='don
 const SCREENS={
 login(){
   const list=S.staff.filter(p=>p.on&&can(p.role,'waiterApp'));
-  const link=MODE!=='local'||!CLOUD_READY?'':`<div class="card" style="margin-top:12px;border-color:var(--amber)">
-    <h3 style="margin:0 0 6px">📡 هذا الموبايل غير مربوط بالمطعم</h3>
-    <p class="muted" style="margin:0 0 10px;font-size:14px">امسح رمز QR من لوحة الإدارة (الإعدادات ← المزامنة عبر الإنترنت)، أو أدخل رمز المطعم:</p>
-    <div class="row"><input type="text" id="joinCode" class="ltr" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" style="flex:1;min-width:0"><button class="btn primary" onclick="join(this)">ربط</button></div></div>`;
+  if(MODE==='cloud') return `<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">🚫</div>
+    <h2 style="margin:6px 0">لا توجد صلاحية</h2><p class="muted">حسابك (${esc(SESSION.user.role)}) لا يملك صلاحية تطبيق الويتر. اطلبها من مدير المطعم.</p>
+    <button class="btn" onclick="logout()">تسجيل الخروج</button></div>`;
+  const link='';
   return link+`<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">👋</div><h2 style="margin:6px 0">أهلاً بك</h2>
     <p class="muted" style="margin:0">اختر اسمك لتبدأ استلام الطلبات</p>
     <div class="who">${list.map(p=>`<button class="btn" onclick="login(${p.id})"><span>🧑‍🍳</span>${esc(p.name)}<div class="muted" style="font-size:12px;font-weight:600">${p.role} · ${p.shift}</div></button>`).join('')||'<div class="empty">لا يوجد موظفون لديهم صلاحية تطبيق الويتر</div>'}</div></div>`;
@@ -143,7 +145,7 @@ mine(){
   const list=myOrders(), lbl={new:['بانتظار المطبخ','b-blue'],preparing:['قيد التحضير','b-amber'],ready:['جاهز — استلمه ✅','b-green']};
   return `<div class="title-row"><h2>طلباتي الجارية</h2><span class="muted">${num(list.length)}</span></div>
   ${list.map(o=>`<div class="card order ${o.status==='ready'?'ready':''}"><header><b>#${o.id} · طاولة ${o.table}</b><span class="badge ${lbl[o.status][1]}">${lbl[o.status][0]}</span></header>
-    <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(item(l.id)?.name||'—')}${l.note?` <span style="color:var(--red)">(${esc(l.note)})</span>`:''}</li>`).join('')}</ul>
+    <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(l.name||item(l.id)?.name||'—')}${l.note?` <span style="color:var(--red)">(${esc(l.note)})</span>`:''}</li>`).join('')}</ul>
     <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px">${timeStr(o.createdAt)} · منذ ${num(mins(o.createdAt))} د</span>
     ${o.status==='ready'?`<button class="btn sm primary" onclick="delivered('${o.uid}')">تم التقديم للزبون</button>`:''}</div></div>`).join('')
     ||'<div class="empty card">لا توجد طلبات جارية</div>'}`;
@@ -151,16 +153,12 @@ mine(){
 };
 
 /* ============ العمليات ============ */
-async function join(btn){
-  const v=$('#joinCode').value;
-  if(normCode(v).length<20) return toast('الرمز غير مكتمل');
-  btn.disabled=true;
-  try{const r=await cloudJoin(v);if(r==='missing')toast('لا يوجد مطعم بهذا الرمز — تأكد منه')}
-  catch(e){toast('⚠ تعذر الاتصال بالإنترنت')}
-  btn.disabled=false;
-}
 function login(id){P.waiter=id;savePrefs();ui.screen='tables';snapshot();render()}
-function logout(){P.waiter=null;savePrefs();ui.cart=[];render()}
+function switchUser(){
+  if(!ME()) return;
+  if(MODE==='cloud'){if(confirm('تسجيل الخروج؟'))logout();return}
+  if(confirm('تبديل المستخدم؟')){P.waiter=null;savePrefs();ui.cart=[];render()}
+}
 function pickTable(id){
   const t=S.tables.find(x=>x.id===id);
   if(t.status==='res'&&!confirm('الطاولة محجوزة. هل وصل الزبون؟')) return;
@@ -192,9 +190,9 @@ function cq(i,d){ui.cart[i].qty+=d;if(ui.cart[i].qty<=0)ui.cart.splice(i,1);if(!
 async function send(){
   if(!ui.cart.length) return;
   $('#sendBtn').disabled=true;
-  const o={uid:uid(),type:'صالة',table:ui.table,items:ui.cart.map(l=>({id:l.id,qty:l.qty,...(l.note?{note:l.note}:{})})),status:'new',pay:null,discount:0,by:ME().name,createdAt:Date.now()};
+  const o={uid:uid(),type:'صالة',table:ui.table,items:ui.cart.map(l=>({id:l.id,qty:l.qty,price:item(l.id)?.price??0,name:item(l.id)?.name||'',...(l.note?{note:l.note}:{})})),status:'new',pay:null,discount:0,by:ME().name,createdAt:Date.now()};
   try{await action({type:'order',order:o})}
-  catch(e){$('#sendBtn').disabled=false;return toast('⚠ لا يوجد اتصال بالخادم — حاول مرة أخرى')}
+  catch(e){$('#sendBtn').disabled=false;return toast('⚠ '+errText(e))}
   const saved=S.orders.find(x=>x.uid===o.uid);
   known[o.uid]='new';
   $('#cartDlg').close(); ui.cart=[]; ui.screen='tables'; render();
@@ -219,7 +217,7 @@ onRemote=()=>{
 loadState().then(()=>{snapshot();render()})
   .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بالمطعم.<br>تأكد من اتصال الإنترنت أو الواي فاي ثم حدّث الصفحة.</div>'});
 // تحديث العدادات (منذ كم دقيقة)
-setInterval(()=>{if(ui.screen==='mine')render()},30000);
+setInterval(()=>{if(ui.screen==='mine'&&!blockedShown)render()},30000);
 </script>
 </body>
 </html>

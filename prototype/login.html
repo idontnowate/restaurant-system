@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تسجيل الدخول</title>
+<script>
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#070912">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="المطعم">
+<script src="pwa.js" defer></script>
+<style>
+body{display:grid;place-items:center;min-height:100vh;padding:16px}
+.box{width:min(400px,100%);padding:28px 24px}
+.logo{width:72px;height:72px;margin:0 auto 10px;border-radius:22px;overflow:hidden;box-shadow:var(--grad-shadow)}
+.logo img{width:100%;height:100%;display:block}
+h1{text-align:center;margin:0;font-size:22px}
+.sub{text-align:center;color:var(--muted);margin:4px 0 22px;font-size:14px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:600;margin-bottom:14px}
+label input{font-size:16px;padding:12px 14px}
+.pw{position:relative}
+.pw button{position:absolute;inset-inline-end:8px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:18px;color:var(--muted)}
+.err{background:var(--red-soft);color:var(--red);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-weight:600;font-size:14px}
+.foot{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<form class="card box" id="form" autocomplete="on">
+  <div class="logo"><img src="icons/icon-192.png" alt=""></div>
+  <h1>نظام إدارة المطعم</h1>
+  <p class="sub">سجّل الدخول بحسابك</p>
+  <div class="err" id="err" hidden></div>
+  <label>اسم المستخدم<input type="text" id="u" class="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+  <label>كلمة المرور<span class="pw"><input type="password" id="p" class="ltr" autocomplete="current-password" required style="width:100%">
+    <button type="button" onclick="const i=$('#p');i.type=i.type==='password'?'text':'password'" title="إظهار">👁</button></span></label>
+  <button class="btn primary lg block" id="go" type="submit">دخول</button>
+  <div class="foot">ليس لديك حساب؟ اطلبه من مدير المطعم.<br>المدير يستلم حسابه من مزوّد البرنامج.</div>
+</form>
+<div class="toast" id="toast"></div>
+<script src="core.js"></script>
+<script>
+const q=new URLSearchParams(location.search);
+const next=q.get('next')||'';
+const home=u=>{
+  if(next&&!/login|provider/.test(next)) return next;
+  return u.role==='ويتر'?'waiter.html':'admin.html';
+};
+function showErr(t){const e=$('#err');e.textContent=t;e.hidden=!t}
+if(!CLOUD_READY) location.replace(next||'admin.html');
+else if(SESSION?.token&&!q.get('r')) location.replace(home(SESSION.user||{}));
+if(q.get('r')) showErr(ERR_TEXT[q.get('r')]||'');
+$('#form').onsubmit=async e=>{
+  e.preventDefault();
+  const b=$('#go'); b.disabled=true; b.textContent='جاري الدخول…'; showErr('');
+  try{
+    const dev=(navigator.userAgentData?.platform||navigator.platform||'')+' · '+(/Mobi/.test(navigator.userAgent)?'موبايل':'كمبيوتر');
+    const r=await rpc('rms_login',{p_username:$('#u').value,p_password:$('#p').value,p_device:dev},{noAuth:true});
+    if(r.error) throw {code:r.error};
+    lsSet(SKEY,JSON.stringify({token:r.token,user:r.user}));
+    // بيانات مطعم آخر قد تكون محفوظة على هذا الجهاز
+    try{const c=JSON.parse(lsGet(CCACHE));if(c&&c.rid!==r.user.restaurant.id)lsSet(CCACHE,null)}catch(x){}
+    location.replace(home(r.user));
+  }catch(x){showErr(errText(x));b.disabled=false;b.textContent='دخول'}
+};
+$('#u').focus();
+</script>
+</body>
+</html>

@@ -18,12 +18,12 @@ PORT = int(os.environ.get('PORT', 8080))
 ROOT = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(ROOT, 'prototype')
 DATA = os.path.join(ROOT, 'data', 'state.json')
-RANK = {'new': 0, 'preparing': 1, 'ready': 2, 'done': 3}
+RANK = {'new': 0, 'preparing': 1, 'ready': 2, 'done': 3, 'void': 9}
 
 lock = threading.Lock()
 state = None
 version = 0
-# آخر العمليات المتزامنة (طلب جديد، حالة طلب، حالة طاولة): تُعاد على أي حفظ مبني على نسخة أقدم حتى لا تضيع
+# آخر العمليات المتزامنة (طلب جديد، حالة طلب، دفع، إلغاء، طاولة): تُعاد على أي حفظ مبني على نسخة أقدم حتى لا تضيع
 ops = []
 
 
@@ -43,35 +43,69 @@ def persist():
     os.replace(tmp, DATA)
 
 
+def deduct(s, o, sign):
+    """خصم (أو إرجاع عند الإلغاء) مواد الوصفة من المخزون."""
+    if not s['settings'].get('autoDeduct', True):
+        return
+    for line in o['items']:
+        dish = next((m for m in s['menu'] if m['id'] == line['id']), None)
+        for key, amount in (dish or {}).get('recipe', {}).items():
+            for inv in s['inventory']:
+                if inv['id'] == key:
+                    inv['qty'] = max(0, round(inv['qty'] - sign * amount * line['qty'], 3))
+
+
 def apply_op(s, op):
     """نفس applyOp في core.js. كل عملية آمنة إذا تكررت."""
     kind = op.get('type')
+    by_uid = lambda u: next((x for x in s['orders'] if x.get('uid') == u), None)
     if kind == 'order':
-        o = dict(op['order'])
-        if any(x.get('uid') == o['uid'] for x in s['orders']):
+        o = json.loads(json.dumps(op['order']))
+        if by_uid(o['uid']):
             return
-        o['id'] = max([s['nextId']] + [x['id'] + 1 for x in s['orders']])
+        o['id'] = s.get('nextId', 1)
         s['nextId'] = o['id'] + 1
         s['orders'].append(o)
-        if s['settings'].get('autoDeduct', True):
-            for line in o['items']:
-                dish = next((m for m in s['menu'] if m['id'] == line['id']), None)
-                for key, amount in (dish or {}).get('recipe', {}).items():
-                    for inv in s['inventory']:
-                        if inv['id'] == key:
-                            inv['qty'] = max(0, inv['qty'] - amount * line['qty'])
+        deduct(s, o, 1)
         if o.get('table'):
             for t in s['tables']:
-                if t['id'] == o['table'] and t['status'] == 'free':
+                if t['id'] == o['table'] and t['status'] in ('free', 'res'):
                     t['status'] = 'busy'
     elif kind == 'status':
-        for o in s['orders']:
-            if o.get('uid') == op['uid'] and RANK.get(op['status'], 0) > RANK.get(o['status'], 0):
-                o['status'] = op['status']
+        o = by_uid(op['uid'])
+        if o and o['status'] != 'void' and RANK.get(op['status'], 0) > RANK.get(o['status'], 0):
+            o['status'] = op['status']
     elif kind == 'table':
         for t in s['tables']:
             if t['id'] == op['id']:
                 t['status'] = op['status']
+    elif kind == 'pay':
+        for u in op.get('uids', []):
+            o = by_uid(u)
+            if o and not o.get('pay') and o['status'] != 'void':
+                o['pay'], o['paidAt'], o['paidBy'] = op.get('pay'), op.get('at'), op.get('by')
+                if op.get('discount') is not None:
+                    o['discount'] = op['discount']
+                if op.get('customer'):
+                    o['customer'] = op['customer']
+        if op.get('table'):
+            for t in s['tables']:
+                if t['id'] == op['table']:
+                    t['status'] = 'free'
+    elif kind == 'void':
+        o = by_uid(op['uid'])
+        if o and o['status'] != 'void':
+            o['status'], o['voidReason'], o['voidBy'], o['voidAt'] = 'void', op.get('reason'), op.get('by'), op.get('at')
+            deduct(s, o, -1)
+    elif kind == 'move':
+        to = next((t for t in s['tables'] if t['id'] == op['to']), None)
+        frm = next((t for t in s['tables'] if t['id'] == op['from']), None)
+        if not to or not frm:
+            return
+        for o in s['orders']:
+            if o.get('table') == op['from'] and not o.get('pay') and o['status'] != 'void':
+                o['table'] = op['to']
+        to['status'], frm['status'] = 'busy', 'free'
 
 
 class Handler(SimpleHTTPRequestHandler):
