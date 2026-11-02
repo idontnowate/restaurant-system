@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="المطعم">
 <script src="pwa.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="vendor/qrcode-1.0.0.min.js"></script>
 <style>
 .wrap{max-width:820px;margin:0 auto;padding:24px 16px}
 h1{margin:0 0 4px;font-size:24px}
@@ -32,9 +32,9 @@ ol{margin:0;padding-inline-start:20px;line-height:2}
 <body>
 <div class="wrap">
   <h1>📱 ربط الموبايلات والأجهزة</h1>
-  <p class="muted" style="margin:0">امسح الرمز بكاميرا الموبايل. يجب أن يكون الموبايل على <b>نفس شبكة الواي فاي</b> لهذا الجهاز.</p>
+  <p class="muted" style="margin:0" id="hint">امسح الرمز بكاميرا الموبايل. يجب أن يكون الموبايل على <b>نفس شبكة الواي فاي</b> لهذا الجهاز.</p>
   <div class="codes" id="codes"><div class="empty card">جاري التحميل…</div></div>
-  <div class="card" style="margin-top:16px">
+  <div class="card" style="margin-top:16px" id="tips">
     <h3>إذا لم يفتح الرابط على الموبايل</h3>
     <ol>
       <li>تأكد أن الموبايل متصل بنفس الواي فاي (وليس بيانات الهاتف).</li>
@@ -44,13 +44,26 @@ ol{margin:0;padding-inline-start:20px;line-height:2}
   </div>
 </div>
 <script>
+// على شبكة المطعم (server.py): روابط الخادم المحلي. من رابط الموقع: روابط فيها رمز المطعم للمزامنة عبر الإنترنت
+function show(links,note){
+  if(note) document.getElementById('hint').innerHTML=note;
+  document.getElementById('codes').innerHTML=links.map((l,i)=>`<div class="card code"><h3 style="margin:0">${l[0]}</h3><div class="muted" style="font-size:13px">${l[2]}</div>
+    <div class="qr" id="qr${i}"></div><div class="url ltr">${l[3]||l[1]}</div></div>`).join('');
+  links.forEach((l,i)=>new QRCode(document.getElementById('qr'+i),{text:l[1],width:400,height:400,correctLevel:QRCode.CorrectLevel.M}));
+}
+function cloud(){
+  let code=null; try{code=localStorage.getItem('rms-cloud')}catch(e){}
+  if(!code){document.getElementById('codes').innerHTML='<div class="empty card">⚠ فعّل المزامنة أولاً من لوحة الإدارة: الإعدادات ← المزامنة عبر الإنترنت</div>';return}
+  const url=p=>new URL(p,location.href).href.split('#')[0]+'#r='+code;
+  document.getElementById('tips').hidden=true;
+  show([['🧑‍🍳 تطبيق الويتر',url('waiter.html'),'للويترية: إرسال الطلبات للمطبخ','الرابط يحتوي رمز المطعم'],
+        ['🖥️ لوحة الإدارة',url('admin.html'),'للكاشير والمطبخ والمدير','الرابط يحتوي رمز المطعم']],
+       'امسح الرمز بكاميرا الموبايل — يعمل من أي مكان بوجود الإنترنت. <b>لا تنشر هذه الرموز</b>: فيها مفتاح بيانات المطعم.');
+}
 fetch('/api/info').then(r=>r.json()).then(({ips,port})=>{
   const base=`http://${ips[0]||location.hostname}:${port}`;
-  const links=[['🧑‍🍳 تطبيق الويتر',base+'/waiter.html','للويترية: إرسال الطلبات للمطبخ'],['🖥️ لوحة الإدارة',base+'/','للكاشير والمطبخ والمدير']];
-  document.getElementById('codes').innerHTML=links.map((l,i)=>`<div class="card code"><h3 style="margin:0">${l[0]}</h3><div class="muted" style="font-size:13px">${l[2]}</div>
-    <div class="qr" id="qr${i}"></div><div class="url ltr">${l[1]}</div></div>`).join('');
-  links.forEach((l,i)=>new QRCode(document.getElementById('qr'+i),{text:l[1],width:400,height:400,correctLevel:QRCode.CorrectLevel.M}));
-}).catch(()=>{document.getElementById('codes').innerHTML='<div class="empty card">⚠ افتح هذه الصفحة من خلال الخادم (تشغيل-الخادم.bat)</div>'});
+  show([['🧑‍🍳 تطبيق الويتر',base+'/waiter.html','للويترية: إرسال الطلبات للمطبخ'],['🖥️ لوحة الإدارة',base+'/','للكاشير والمطبخ والمدير']]);
+}).catch(cloud);
 </script>
 </body>
 </html>

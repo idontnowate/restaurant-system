@@ -135,75 +135,162 @@ function migrate(){
 }
 
 /* ============ الحفظ والمزامنة ============ */
-const KEY='rms-proto-v1';
-// يُحسم عند التحميل: إذا لم يُعثر على الخادم (مثلاً رابط معاينة منشور) نعمل محلياً في المتصفح
-let SERVER=location.protocol.startsWith('http');
+// ثلاث طرق، يُختار أولها المتاح عند فتح الصفحة:
+//  server — خادم المطعم (server.py) على نفس شبكة الواي فاي
+//  cloud  — المزامنة عبر الإنترنت (Supabase) إذا رُبط الجهاز برمز المطعم
+//  local  — هذا المتصفح فقط
+const CLOUD={url:'https://pxxgydllfustqkpkfiqn.supabase.co',key:'sb_publishable_I2L_KEOwIXjyuCOue4w_3g_MMhYImIU'};
+const KEY='rms-proto-v1', CKEY='rms-cloud', CCACHE='rms-cloud-cache';
+let MODE='local';
 let S=null, V=0, putTimer=null, putting=false, dirty=false, online=true;
+let lastOp=0;          // (cloud) آخر عملية طبّقها هذا الجهاز
 let onRemote=()=>{};   // تضعها كل صفحة: ماذا تفعل عند وصول تحديث من جهاز آخر
+
+/* ---- رمز المطعم (للمزامنة عبر الإنترنت) ---- */
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v);return true}catch(e){return false}};
+const normCode=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const fmtCode=c=>(c||'').match(/.{1,4}/g)?.join('-')||'';
+function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return [...crypto.getRandomValues(new Uint8Array(24))].map(x=>a[x%32]).join('')}
+let cloudCode=lsGet(CKEY);
+// رابط من رمز QR: ...waiter.html#r=CODE يربط الجهاز مباشرة
+{const m=location.hash.match(/(?:^#|&)r=([A-Za-z0-9-]+)/);
+ if(m){const c=normCode(m[1]);if(c.length>=20){cloudCode=c;lsSet(CKEY,c)}history.replaceState(null,'',location.pathname+location.search)}}
 
 async function api(path,opt={}){
   const r=await fetch(path,{headers:{'Content-Type':'application/json'},cache:'no-store',...opt});
   if(!r.ok) throw new Error('HTTP '+r.status);
   return r.json();
 }
-function setOnline(v){
-  if(online===v) return; online=v;
-  document.querySelectorAll('.net').forEach(e=>{e.classList.toggle('off',!v);e.lastChild.textContent=v?' متصل':' غير متصل'});
+async function rpc(fn,args){
+  const r=await fetch(`${CLOUD.url}/rest/v1/rpc/${fn}`,{method:'POST',cache:'no-store',
+    headers:{apikey:CLOUD.key,Authorization:'Bearer '+CLOUD.key,'Content-Type':'application/json'},
+    body:JSON.stringify(args),signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
 }
+function setOnline(v){
+  online=v;
+  const t=MODE==='local'?' على هذا الجهاز':v?' متصل':' غير متصل';
+  document.querySelectorAll('.net').forEach(e=>{e.classList.toggle('off',MODE!=='local'&&!v);e.lastChild.textContent=t});
+}
+
 async function loadState(){
-  if(SERVER){
+  if(location.protocol.startsWith('http')){
     let r=null;
-    try{r=await api('/api/state')}catch(e){SERVER=false}
-    if(r&&!('state' in r)) SERVER=false;   // صفحة ليست خادم المطعم
-    if(SERVER){
+    try{r=await api('/api/state')}catch(e){}
+    if(r&&'state' in r){
+      MODE='server';
       if(r.state){S=r.state;V=r.version;migrate()}
       else{S=SEED();await pushNow()}
-      return;
+      return setOnline(true);
     }
   }
-  {
-    try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-    if(!S) S=SEED();
-    migrate();
-    // تبويب آخر (مثلاً تطبيق الويتر) غيّر البيانات
-    addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){S=JSON.parse(e.newValue);migrate();onRemote()}});
-  }
+  if(cloudCode){MODE='cloud';return cloudLoad()}
+  MODE='local';
+  try{S=JSON.parse(lsGet(KEY))}catch(e){}
+  if(!S) S=SEED();
+  migrate(); setOnline(true);
+  // تبويب آخر (مثلاً تطبيق الويتر) غيّر البيانات
+  addEventListener('storage',e=>{if(MODE==='local'&&e.key===KEY&&e.newValue){S=JSON.parse(e.newValue);migrate();onRemote()}});
 }
 function save(){
-  if(!SERVER){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠ مساحة التخزين ممتلئة — قلّل الصور')}return}
+  if(MODE==='local'){if(!lsSet(KEY,JSON.stringify(S)))toast('⚠ مساحة التخزين ممتلئة — قلّل الصور');return}
+  if(MODE==='cloud'&&V<0){toast('⚠ لا يوجد اتصال بالإنترنت — التعديل لن يُحفظ');return}
   dirty=true; clearTimeout(putTimer); putTimer=setTimeout(pushNow,300);
 }
 async function pushNow(){
   if(putting){dirty=true;return}
   putting=true; dirty=false; clearTimeout(putTimer);
   try{
-    const r=await api('/api/state',{method:'PUT',body:JSON.stringify({base:V,state:S})});
-    V=r.version; setOnline(true);
-    // وصلت طلبات من أجهزة أخرى أثناء التعديل: الخادم دمجها
-    if(r.merged){S=r.state;migrate();onRemote()}
+    if(MODE==='cloud'){
+      const r=await rpc('rms_save',{p_code:cloudCode,p_state:S,p_folded:lastOp});
+      V=r.version; cacheCloud();
+    }else{
+      const r=await api('/api/state',{method:'PUT',body:JSON.stringify({base:V,state:S})});
+      V=r.version;
+      // وصلت طلبات من أجهزة أخرى أثناء التعديل: الخادم دمجها
+      if(r.merged){S=r.state;migrate();onRemote()}
+    }
+    setOnline(true);
   }catch(e){setOnline(false);dirty=true;putTimer=setTimeout(pushNow,3000)}
   putting=false;
   if(dirty&&online) pushNow();
 }
 // عمليات قد تحدث من عدة أجهزة بنفس الوقت (طلب جديد، حالة طلب، حالة طاولة) تُرسل كعملية منفصلة حتى لا تضيع
 async function action(op){
-  if(!SERVER){applyOp(S,op);save();return S}
+  if(MODE==='local'){applyOp(S,op);save();return S}
   if(dirty||putting) await pushNow();
+  if(MODE==='cloud'){
+    if(V<0) throw new Error('offline');
+    await rpc('rms_op',{p_code:cloudCode,p_op:op});
+    await cloudPull(true);
+    return S;
+  }
   const r=await api('/api/action',{method:'POST',body:JSON.stringify({op})});
   S=r.state; V=r.version; migrate(); setOnline(true);
   return S;
 }
+
+/* ---- المزامنة عبر الإنترنت ---- */
+function cacheCloud(){lsSet(CCACHE,JSON.stringify({code:cloudCode,S}))}
+// يجلب ما تغيّر: نسخة كاملة جديدة (إن حفظ جهاز آخر) + العمليات الجديدة بالترتيب
+async function cloudPull(quiet){
+  const r=await rpc('rms_pull',{p_code:cloudCode,p_version:V,p_after:lastOp});
+  setOnline(true);
+  if(!r.exists) return false;
+  if(putting||dirty) return true;          // تعديل محلي بالطريق: نعيد المحاولة في الدورة القادمة
+  let changed=false;
+  if(r.state){S=r.state;V=r.version;lastOp=r.last_op;changed=true}
+  for(const o of r.ops){if(o.id>lastOp){applyOp(S,o.op);lastOp=o.id;changed=true}}
+  if(changed){migrate();cacheCloud();if(!quiet)onRemote()}
+  return true;
+}
+async function cloudLoad(){
+  V=-1; lastOp=0;
+  try{
+    if(!await cloudPull(true)){
+      // مطعم جديد: نرفع بيانات هذا الجهاز
+      try{S=JSON.parse(lsGet(KEY))}catch(e){}
+      if(!S) S=SEED(); migrate();
+      const r=await rpc('rms_save',{p_code:cloudCode,p_state:S,p_folded:0}); V=r.version; cacheCloud();
+    }
+  }catch(e){
+    // بدون إنترنت: نعرض آخر نسخة محفوظة على الجهاز حتى يعود الاتصال
+    try{const c=JSON.parse(lsGet(CCACHE));if(c&&c.code===cloudCode)S=c.S}catch(e){}
+    if(!S) throw e;
+    migrate(); setOnline(false);
+  }
+}
+// ربط هذا الجهاز: إنشاء مزامنة جديدة ببيانات الجهاز الحالية
+async function cloudCreate(){
+  const code=newCode();
+  const r=await rpc('rms_save',{p_code:code,p_state:S,p_folded:0});
+  cloudCode=code; lsSet(CKEY,code); MODE='cloud'; V=r.version; lastOp=0; cacheCloud(); setOnline(true);
+  return code;
+}
+// ربط بمطعم موجود: نتأكد أن الرمز صحيح قبل حفظه
+async function cloudJoin(raw){
+  const code=normCode(raw);
+  if(code.length<20) return 'short';
+  const r=await rpc('rms_pull',{p_code:code,p_version:-1,p_after:0});
+  if(!r.exists) return 'missing';
+  lsSet(CKEY,code); location.reload(); return 'ok';
+}
+function cloudLeave(){lsSet(CKEY,null);lsSet(CCACHE,null);location.reload()}
+
 // فحص التحديثات من الأجهزة الأخرى
 setInterval(async()=>{
-  if(!SERVER||putting||dirty||!S) return;
+  if(MODE==='local'||putting||dirty||!S) return;
   try{
+    if(MODE==='cloud'){await cloudPull(false);return}
     const r=await api('/api/version'); setOnline(true);
     if(r.version===V) return;
     const s=await api('/api/state');
     if(putting||dirty) return;
     S=s.state; V=s.version; migrate(); onRemote();
   }catch(e){setOnline(false)}
-},1500);
+},2000);
 
 // نفس منطق الخادم، للعمل بدون خادم
 function applyOp(s,op){

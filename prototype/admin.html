@@ -558,10 +558,11 @@ const SETTINGS=[
     <div style="margin-top:8px"><div class="set-toggle"><span><strong>الحركة والتأثيرات</strong><span class="hint">انتقالات ناعمة وتغيير المظهر بدائرة. أوقفها إذا كان الجهاز بطيئاً.</span></span>
       <button class="sw ${P.motion==='on'?'on':''}" onclick="setPref('motion',P.motion==='on'?'off':'on')"></button></div></div>`},
   {label:'البيانات'},
+  {id:'sync',ico:'🔄',t:'المزامنة عبر الإنترنت',d:'اربط أجهزة المطعم (الكاشير، المطبخ، الويتر) ببيانات واحدة تتحدث فوراً عبر الإنترنت.',body:syncBody},
   {id:'backup',ico:'💾',t:'النسخ الاحتياطي',d:'احفظ نسخة من كل بيانات المطعم أو استرجعها.',body:()=>`
     <div class="set-toggle"><span><strong>تصدير نسخة احتياطية</strong><span class="hint">ملف JSON فيه المنيو والصور والطلبات والمخزون والإعدادات</span></span><button class="btn primary" onclick="exportData()">⬇ تصدير</button></div>
     <div class="set-toggle"><span><strong>استرجاع نسخة</strong><span class="hint">تستبدل البيانات الحالية بالكامل</span></span><button class="btn" onclick="$('#importFile').click()">⬆ استرجاع</button></div>
-    <div class="set-toggle"><span><strong>حالة المزامنة</strong><span class="hint">${SERVER?'متصل بخادم المطعم — كل الأجهزة على نفس الشبكة تتشارك البيانات':'تعمل بدون خادم — البيانات محفوظة في هذا المتصفح فقط. شغّل server.py لربط الأجهزة'}</span></span><span class="net"><i></i> ${SERVER?'متصل':'محلي'}</span></div>`},
+    <div class="set-toggle"><span><strong>حالة المزامنة</strong><span class="hint">${MODE_TEXT[MODE]}</span></span></div>`},
   {id:'danger',ico:'⚠️',t:'منطقة الخطر',d:'عمليات لا يمكن التراجع عنها.',body:()=>`
     <div class="danger-box"><span><strong>حذف طلبات اليوم</strong><span class="hint">يحذف كل طلبات اليوم من السجل والتقارير</span></span>
       <button class="btn danger" onclick="if(confirm('حذف كل طلبات اليوم؟')){S.orders=S.orders.filter(o=>!isToday(o.createdAt));save();render();toast('تم الحذف')}">حذف</button></div>
@@ -569,7 +570,49 @@ const SETTINGS=[
       <button class="btn danger" onclick="if(confirm('إعادة ضبط كل البيانات؟')){S=SEED();save();render();toast('تمت إعادة الضبط')}">إعادة ضبط</button></div>`},
 ];
 // صفحة الإعدادات للمدير فقط في قسم الصلاحيات (حتى لا يمنح أحد نفسه صلاحيات)
-const SETTINGS_ADMIN=['perms','danger'];
+const SETTINGS_ADMIN=['perms','danger','sync'];
+
+/* ---- المزامنة عبر الإنترنت ---- */
+const MODE_TEXT={
+  server:'متصل بخادم المطعم (server.py) — كل الأجهزة على نفس الشبكة تتشارك البيانات',
+  cloud:'متزامن عبر الإنترنت — كل الأجهزة المربوطة برمز المطعم تتشارك البيانات',
+  local:'البيانات محفوظة في هذا المتصفح فقط — فعّل «المزامنة عبر الإنترنت» لربط الأجهزة',
+};
+const appLink=(page,code)=>new URL(page,location.href).href.split('#')[0]+'#r='+code;
+function syncBody(){
+  if(MODE==='server') return `<div class="set-toggle"><span><strong>متصل بخادم المطعم</strong><span class="hint">${MODE_TEXT.server}. المزامنة عبر الإنترنت تُستخدم عند فتح النظام من رابط الموقع بدل الخادم المحلي.</span></span><span class="net"><i></i> متصل</span></div>`;
+  if(MODE==='cloud') return `
+    <div class="set-toggle"><span><strong>الحالة</strong><span class="hint">${MODE_TEXT.cloud}</span></span><span class="net ${online?'':'off'}"><i></i> ${online?'متصل':'غير متصل'}</span></div>
+    <div class="set-toggle"><span><strong>رمز المطعم</strong><span class="hint">سري — من يملكه يستطيع رؤية بيانات المطعم وتعديلها. أعطه لموظفيك فقط.</span>
+      <b class="ltr" style="display:block;font-size:18px;letter-spacing:1px;margin-top:6px">${fmtCode(cloudCode)}</b></span>
+      <button class="btn sm" onclick="copyText('${cloudCode}')">نسخ</button></div>
+    <div class="set-toggle"><span><strong>ربط موبايل أو جهاز جديد</strong><span class="hint">امسح رمز QR بكاميرا الموبايل، أو أرسل له رابط تطبيق الويتر</span></span>
+      <div class="row"><a class="btn sm primary" href="connect.html" target="_blank" style="text-decoration:none">📱 رموز QR</a><button class="btn sm" onclick="copyText(appLink('waiter.html',cloudCode))">نسخ رابط الويتر</button></div></div>
+    <div class="set-toggle"><span><strong>فصل هذا الجهاز</strong><span class="hint">يتوقف هذا الجهاز عن المزامنة. بيانات المطعم تبقى محفوظة على الإنترنت وعلى باقي الأجهزة.</span></span>
+      <button class="btn sm danger" onclick="if(confirm('فصل هذا الجهاز عن المزامنة؟'))cloudLeave()">فصل</button></div>`;
+  return `
+    <div class="set-toggle"><span><strong>تفعيل المزامنة لهذا المطعم</strong><span class="hint">تُرفع بيانات هذا الجهاز (المنيو، الطاولات، الطلبات…) وتحصل على رمز للمطعم تربط به باقي الأجهزة. استخدمه مرة واحدة على الجهاز الرئيسي.</span></span>
+      <button class="btn primary" onclick="syncCreate(this)">🔄 تفعيل</button></div>
+    <div class="set-toggle"><span><strong>ربط بمطعم مفعّل مسبقاً</strong><span class="hint">أدخل رمز المطعم من الجهاز الرئيسي. بيانات هذا الجهاز تُستبدل ببيانات المطعم.</span>
+      <span class="row" style="margin-top:8px"><input type="text" id="joinCode" class="ltr" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" style="flex:1;min-width:220px"><button class="btn" onclick="syncJoin(this)">ربط</button></span></span></div>`;
+}
+async function syncCreate(btn){
+  btn.disabled=true;
+  try{await cloudCreate();render();toast('✓ تم تفعيل المزامنة — اربط باقي الأجهزة برمز QR')}
+  catch(e){btn.disabled=false;toast('⚠ تعذر الاتصال بالإنترنت — حاول مرة أخرى')}
+}
+async function syncJoin(btn){
+  const v=$('#joinCode').value;
+  if(normCode(v).length<20) return toast('الرمز غير مكتمل');
+  if(!confirm('سيتم استبدال بيانات هذا الجهاز ببيانات المطعم. متابعة؟')) return;
+  btn.disabled=true;
+  try{const r=await cloudJoin(v);if(r==='missing')toast('لا يوجد مطعم بهذا الرمز — تأكد منه')}
+  catch(e){toast('⚠ تعذر الاتصال بالإنترنت')}
+  btn.disabled=false;
+}
+function copyText(t){
+  (navigator.clipboard?.writeText(t)||Promise.reject()).then(()=>toast('✓ تم النسخ')).catch(()=>prompt('انسخ:',t));
+}
 
 function receiptPreview(){
   const s=st(), w=s.receiptWidth==='58'?210:290;
@@ -722,7 +765,7 @@ function tick(){
 }
 setInterval(tick,15000);
 loadState().then(()=>{lastNew=S.orders.filter(o=>o.status==='new').length;render();tick()})
-  .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بخادم المطعم. تأكد أن server.py يعمل ثم حدّث الصفحة.</div>'});
+  .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بالمطعم. تأكد من اتصال الإنترنت (أو أن server.py يعمل) ثم حدّث الصفحة.</div>'});
 </script>
 </body>
 </html>

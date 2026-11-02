@@ -105,7 +105,11 @@ const myOrders=()=>!ME()?[]:S.orders.filter(o=>o.by===ME().name&&o.status!=='don
 const SCREENS={
 login(){
   const list=S.staff.filter(p=>p.on&&can(p.role,'waiterApp'));
-  return `<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">👋</div><h2 style="margin:6px 0">أهلاً بك</h2>
+  const link=MODE!=='local'?'':`<div class="card" style="margin-top:12px;border-color:var(--amber)">
+    <h3 style="margin:0 0 6px">📡 هذا الموبايل غير مربوط بالمطعم</h3>
+    <p class="muted" style="margin:0 0 10px;font-size:14px">امسح رمز QR من لوحة الإدارة (الإعدادات ← المزامنة عبر الإنترنت)، أو أدخل رمز المطعم:</p>
+    <div class="row"><input type="text" id="joinCode" class="ltr" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" style="flex:1;min-width:0"><button class="btn primary" onclick="join(this)">ربط</button></div></div>`;
+  return link+`<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">👋</div><h2 style="margin:6px 0">أهلاً بك</h2>
     <p class="muted" style="margin:0">اختر اسمك لتبدأ استلام الطلبات</p>
     <div class="who">${list.map(p=>`<button class="btn" onclick="login(${p.id})"><span>🧑‍🍳</span>${esc(p.name)}<div class="muted" style="font-size:12px;font-weight:600">${p.role} · ${p.shift}</div></button>`).join('')||'<div class="empty">لا يوجد موظفون لديهم صلاحية تطبيق الويتر</div>'}</div></div>`;
 },
@@ -147,6 +151,14 @@ mine(){
 };
 
 /* ============ العمليات ============ */
+async function join(btn){
+  const v=$('#joinCode').value;
+  if(normCode(v).length<20) return toast('الرمز غير مكتمل');
+  btn.disabled=true;
+  try{const r=await cloudJoin(v);if(r==='missing')toast('لا يوجد مطعم بهذا الرمز — تأكد منه')}
+  catch(e){toast('⚠ تعذر الاتصال بالإنترنت')}
+  btn.disabled=false;
+}
 function login(id){P.waiter=id;savePrefs();ui.screen='tables';snapshot();render()}
 function logout(){P.waiter=null;savePrefs();ui.cart=[];render()}
 function pickTable(id){
@@ -205,7 +217,7 @@ onRemote=()=>{
 };
 
 loadState().then(()=>{snapshot();render()})
-  .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بخادم المطعم.<br>تأكد أن الموبايل على نفس شبكة الواي فاي ثم حدّث الصفحة.</div>'});
+  .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بالمطعم.<br>تأكد من اتصال الإنترنت أو الواي فاي ثم حدّث الصفحة.</div>'});
 // تحديث العدادات (منذ كم دقيقة)
 setInterval(()=>{if(ui.screen==='mine')render()},30000);
 </script>
