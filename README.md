@@ -28,6 +28,14 @@ py server.py
 
 البيانات تُحفظ في `data/state.json` (غير مرفوعة على GitHub).
 
+## النسخة المنشورة على الإنترنت
+يُنشر مجلد `prototype` تلقائياً على GitHub Pages مع كل رفع على `main`:
+- لوحة الإدارة: `https://idontnowate.github.io/restaurant-system/`
+- تطبيق الويتر: `https://idontnowate.github.io/restaurant-system/waiter.html`
+
+يمكن تثبيت كل منهما كتطبيق على الموبايل والكمبيوتر (من قائمة المتصفح ← «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»)، ويفتح بدون إنترنت.
+النسخة المنشورة تحفظ البيانات على كل جهاز وحده؛ لربط الكاشير والمطبخ والويتر ببيانات مشتركة شغّل `server.py` داخل المطعم.
+
 ## هيكل المشروع
 | الملف | الوصف |
 |---|---|
@@ -37,4 +45,6 @@ py server.py
 | `prototype/connect.html` | رموز QR لربط الموبايلات |
 | `prototype/core.js` | البيانات والمزامنة والأدوات المشتركة |
 | `prototype/theme.css` | المظاهر والعناصر المشتركة |
+| `prototype/pwa.js`، `sw.js`، `*.webmanifest`، `icons/` | التثبيت كتطبيق والعمل بدون إنترنت |
+| `.github/workflows/pages.yml` | النشر التلقائي على GitHub Pages |
 | `docs/restaurant-needs.md` | تحليل احتياجات المطاعم وخطة البناء |

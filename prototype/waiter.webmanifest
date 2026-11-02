@@ -1,0 +1,19 @@
+{
+  "id": "waiter.html",
+  "name": "تطبيق الويتر",
+  "short_name": "الويتر",
+  "description": "استلام طلبات الطاولات وإرسالها للمطبخ",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "waiter.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070912",
+  "theme_color": "#070912",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
