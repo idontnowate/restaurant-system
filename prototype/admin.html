@@ -73,7 +73,8 @@
 .progress i{display:block;height:100%;border-radius:99px}
 
 /* نقطة البيع */
-.pos{display:grid;grid-template-columns:1fr 370px;gap:16px;align-items:start}
+.pos{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:16px;align-items:start}
+.pos>*{min-width:0}
 .cart{position:sticky;top:20px}
 .lines{max-height:280px;overflow:auto;margin:8px 0}
 .line{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
@@ -113,6 +114,36 @@
 .edit-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px;margin-bottom:16px}
 .edit-bar input{font-weight:700}
 .thumb{width:44px;height:34px;border-radius:8px;object-fit:cover;display:block}
+
+/* ===== تحسينات التصميم: القائمة والرأس والبطاقات ===== */
+.side{padding:14px 10px;overflow:hidden}
+.nav{overflow:auto;min-height:0;scrollbar-width:thin;margin:0 -4px;padding:0 4px 14px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent)}
+.nav button,.side-link{padding:6px 8px;font-size:14.5px;position:relative;margin-bottom:2px}
+.nav .ico,.side-link .ico{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);font-size:16px;flex:none}
+.nav button.active .ico{background:var(--grad);box-shadow:var(--grad-shadow)}
+.nav button.active::before{content:"";position:absolute;inset-inline-start:-3px;top:9px;bottom:9px;width:4px;border-radius:4px;background:var(--grad)}
+.nav .sep{padding:12px 10px 4px;letter-spacing:.3px}
+.me-card{display:flex;align-items:center;gap:10px;min-width:0}
+.me-card .info{min-width:0;flex:1}.me-card .info b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-card .info small{color:var(--muted);font-size:12px}
+.me .acts{display:flex;gap:6px;margin-top:10px}.me .acts .btn{flex:1}
+.top{position:sticky;top:0;z-index:30;margin:-20px -24px 18px -12px;padding:14px 24px 14px 12px;
+  background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);border-bottom:1px solid var(--line)}
+.page-ico{width:44px;height:44px;border-radius:14px;background:var(--grad);display:grid;place-items:center;font-size:22px;box-shadow:var(--shine),var(--grad-shadow);flex:none}
+.kpi-ico{position:absolute;top:14px;inset-inline-end:14px;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;background:rgba(var(--glow),.16);box-shadow:inset 0 0 0 1px rgba(var(--glow),.25)}
+.kpi:has(.kpi-ico)::after{display:none}
+.kpi:has(.kpi-ico) .label{padding-inline-end:50px;min-height:20px}
+.cart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cart-head b{font-size:16px}
+.ticket{--tk:var(--blue);border-top:0;padding:0;overflow:hidden}
+.ticket.warn{--tk:var(--amber)}.ticket.late{--tk:var(--red)}
+.ticket header{padding:10px 12px;margin:0;background:color-mix(in srgb,var(--tk) 15%,transparent);border-bottom:1px solid color-mix(in srgb,var(--tk) 35%,transparent)}
+.ticket .who{padding:0 12px;margin:8px 0 4px}.ticket ul{padding:0 12px}
+.ticket>.btn{margin:0 12px 12px;width:calc(100% - 24px)!important}
+.ticket .timer{background:color-mix(in srgb,var(--tk) 25%,transparent);color:var(--tk);padding:2px 10px;border-radius:99px;font-size:13px}
+.ticket.late header{animation:latePulse 1.6s ease-in-out infinite}
+@keyframes latePulse{50%{background:color-mix(in srgb,var(--tk) 30%,transparent)}}
+@media (prefers-reduced-motion:reduce){.ticket.late header{animation:none}}
 
 /* الحوار العام */
 #dlg{width:min(560px,calc(100vw - 24px))}
@@ -167,9 +198,12 @@
 .perm .sw{margin:auto}
 .logo-pv{width:64px;height:64px;border-radius:16px;background:var(--grad);color:var(--on-grad);display:grid;place-items:center;font-size:32px;overflow:hidden;flex:none}
 
-@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.pos{grid-template-columns:1fr}.cart{position:static}.set-split{grid-template-columns:1fr}}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.pos{grid-template-columns:minmax(0,1fr)}.cart{position:static}.set-split{grid-template-columns:1fr}}
 @media (max-width:860px){
   .app{grid-template-columns:1fr}
+  .top{margin:-16px -16px 14px;padding:10px 16px}
+  #clock{display:none}
+  .page-ico{width:38px;height:38px;font-size:19px}
   .side{position:fixed;margin:0;top:0;height:100vh;inset-inline-start:0;width:270px;border-radius:0;z-index:40;transform:translateX(110%);transition:transform .2s;background:var(--strong);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%)}
   .side.open{transform:none}
   .top .menu-btn{display:grid}
@@ -195,6 +229,7 @@
   <main class="main">
     <div class="top">
       <button class="btn icon-btn menu-btn" onclick="$('#side').classList.toggle('open')">☰</button>
+      <div class="page-ico" id="pageIco"></div>
       <div><h1 id="pageTitle"></h1><div class="sub" id="pageSub"></div></div>
       <div class="spacer"></div>
       <span class="net"><i></i> متصل</span>
@@ -253,10 +288,9 @@ function renderNav(){
     return h+`<button class="${ui.page===p.id?'active':''}" onclick="go('${p.id}')"><span class="ico">${p.ico}</span>${p.t}${c?`<span class="count">${num(c)}</span>`:''}</button>`}).join('');
   const me=ME();
   $('#me').innerHTML=MODE==='cloud'
-    ?`<div class="row"><b style="font-size:14px">👤 ${esc(me.name)}</b><span class="badge b-blue">${me.role}</span></div>
-      <div class="muted ltr" style="font-size:12px;text-align:end">${esc(me.username||'')}</div>
-      <div class="row" style="margin-top:8px"><button class="btn sm" onclick="ui.set='account';go('settings')">🔑 حسابي</button><button class="btn sm" onclick="if(confirm('تسجيل الخروج؟'))logout()">خروج ⎋</button></div>`
-    :`<div class="row"><span class="muted" style="font-size:12px">المستخدم الحالي</span><span class="badge b-blue">${me.role}</span></div>
+    ?`<div class="me-card"><div class="avatar">${esc((me.name||'?').trim()[0])}</div><div class="info"><b>${esc(me.name)}</b><small>${me.role} · <span class="ltr">${esc(me.username||'')}</span></small></div></div>
+      <div class="acts"><button class="btn sm" onclick="ui.set='account';go('settings')">🔑 حسابي</button><button class="btn sm" onclick="if(confirm('تسجيل الخروج؟'))logout()">خروج ⎋</button></div>`
+    :`<div class="me-card"><div class="avatar">${esc((me.name||'?').trim()[0])}</div><div class="info"><b>${esc(me.name)}</b><small>${me.role} · المستخدم الحالي</small></div></div>
       <select onchange="P.user=isNaN(+this.value)?this.value:+this.value;savePrefs();render()">${S.staff.map(p=>`<option value="${esc(p.id)}" ${p.id===me.id?'selected':''}>${esc(p.name)} — ${p.role}</option>`).join('')}</select>
       <div class="muted" style="font-size:11px;margin-top:6px">${MODE==='server'?'خادم المطعم (بدون حسابات)':'وضع التجربة على هذا الجهاز'}</div>`;
 }
@@ -276,7 +310,7 @@ function render(){
   if(!$('#view')) return;
   if(!canI(ui.page)) ui.page=PAGES.find(p=>p.id&&canI(p.id))?.id||'dash';
   const p=PAGES.find(x=>x.id===ui.page);
-  $('#pageTitle').textContent=p.t; $('#pageSub').textContent=p.s;
+  $('#pageTitle').textContent=p.t; $('#pageSub').textContent=p.s; $('#pageIco').textContent=p.ico;
   $('#brandName').textContent=st().name; $('#brandBranch').textContent=st().branch; $('#brandLogo').innerHTML=logoHtml();
   document.title=st().name+' — '+p.t;
   renderNav(); renderBanner();
@@ -359,20 +393,20 @@ dash(){
   const low=lowItems(), live=S.orders.filter(o=>o.status!=='done'&&o.status!=='void'), due=dueTables();
   return `
   <div class="grid kpis">
-    <div class="card kpi"><div class="label">مبيعات اليوم</div><div class="val">${see?fmt(sales):'•••'}</div>
+    <div class="card kpi"><div class="kpi-ico">💰</div><div class="label">مبيعات اليوم</div><div class="val">${see?fmt(sales):'•••'}</div>
       <div class="hint ${diff<0?'down':''}">${!see?'مخفي حسب الصلاحيات':diff==null?'لا توجد مبيعات أمس للمقارنة':`${diff<0?'▼':'▲'} ${num(Math.abs(diff))}% عن أمس بنفس الوقت`}</div></div>
-    <div class="card kpi"><div class="label">عدد الطلبات</div><div class="val">${num(today.length)}</div><div class="hint">${num(live.length)} قيد التنفيذ</div></div>
-    <div class="card kpi"><div class="label">متوسط الفاتورة</div><div class="val">${see?fmt(today.length?sales/today.length:0):'•••'}</div><div class="hint" style="color:var(--muted)">لكل طلب</div></div>
-    <div class="card kpi"><div class="label">الطاولات المشغولة</div><div class="val ltr">${num(busy)} / ${num(S.tables.length)}</div><div class="hint" style="color:${due.length?'var(--amber)':'var(--muted)'}">${due.length?num(due.length)+' بانتظار الحساب':num(S.tables.length?busy/S.tables.length*100:0)+'% إشغال'}</div></div>
+    <div class="card kpi"><div class="kpi-ico">🧾</div><div class="label">عدد الطلبات</div><div class="val">${num(today.length)}</div><div class="hint">${num(live.length)} قيد التنفيذ</div></div>
+    <div class="card kpi"><div class="kpi-ico">📊</div><div class="label">متوسط الفاتورة</div><div class="val">${see?fmt(today.length?sales/today.length:0):'•••'}</div><div class="hint" style="color:var(--muted)">لكل طلب</div></div>
+    <div class="card kpi"><div class="kpi-ico">🪑</div><div class="label">الطاولات المشغولة</div><div class="val ltr">${num(busy)} / ${num(S.tables.length)}</div><div class="hint" style="color:${due.length?'var(--amber)':'var(--muted)'}">${due.length?num(due.length)+' بانتظار الحساب':num(S.tables.length?busy/S.tables.length*100:0)+'% إشغال'}</div></div>
   </div>
   <div class="grid two" style="margin-top:16px">
-    <div class="card"><h3>${see?'المبيعات حسب الساعة':'الطلبات حسب الساعة'}</h3>
+    <div class="card"><h3>📈 ${see?'المبيعات حسب الساعة':'الطلبات حسب الساعة'}</h3>
       <div class="bars">${Object.entries(hours).map(([h,v])=>`<div class="bar" title="${see?fmt(v):num(v)}"><i style="height:${v/maxH*100}%"></i><span>${h}</span></div>`).join('')}</div></div>
-    <div class="card"><h3>الأكثر مبيعاً اليوم</h3>
+    <div class="card"><h3>🏆 الأكثر مبيعاً اليوم</h3>
       ${top.map(t=>`<div class="hbar"><span class="name">${esc(t.name)}</span><div class="track"><div class="fill" style="width:${t.qty/maxT*100}%"></div></div><span class="num">${num(t.qty)}</span></div>`).join('')||'<div class="empty">لا مبيعات بعد</div>'}</div>
   </div>
   <div class="grid two" style="margin-top:16px">
-    <div class="card"><div class="row" style="justify-content:space-between"><h3>طلبات جارية</h3>${canI('kds')?`<button class="btn sm" onclick="go('kds')">شاشة المطبخ ←</button>`:''}</div>
+    <div class="card"><div class="row" style="justify-content:space-between"><h3>⏱️ طلبات جارية</h3>${canI('kds')?`<button class="btn sm" onclick="go('kds')">شاشة المطبخ ←</button>`:''}</div>
       <div class="table-wrap"><table><tr><th>#</th><th>النوع</th><th>بواسطة</th><th>المدة</th><th>الحالة</th></tr>
       ${live.map(o=>`<tr><td>${o.id}</td><td>${o.type}${o.table?' · '+esc(tableName(o.table)):''}</td><td class="muted">${esc(o.by||'—')}</td><td>${num(mins(o.createdAt))} د</td><td>${statusBadge(o)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">لا توجد طلبات جارية</td></tr>'}</table></div></div>
     <div class="card"><h3>⚠️ تنبيهات المخزون</h3>
@@ -392,6 +426,7 @@ pos(){
      <div class="items" id="posItems">${posItems()}</div>
    </div>
    <div class="card cart">
+     <div class="cart-head"><b>🧾 الطلب الحالي</b>${ui.cart.length?`<span class="badge b-blue">${num(ui.cart.reduce((s,l)=>s+l.qty,0))} صنف</span>`:''}</div>
      <div class="seg">${types.map(t=>`<button class="${ui.type===t?'active':''}" onclick="ui.type='${t}';render()">${t}</button>`).join('')}</div>
      ${ui.type==='صالة'?`<select style="width:100%" onchange="ui.table=this.value">${tableOptions(ui.table)}</select>`:''}
      ${ui.type!=='صالة'?`<div class="cust-fields">
@@ -588,11 +623,11 @@ reports(){
   if(!all) return head+LOADING;
   const R=report(all,from,to), see=canI('sales'), cost=canI('cost');
   const block=(title,rows,money=true)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return `<div class="card"><h3>${title}</h3>${rows.map(([k,v])=>`<div class="hbar"><span class="name">${esc(k)}</span><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div><span class="num">${money?(see?fmt(v):'•••'):num(v)}</span></div>`).join('')||'<div class="empty">—</div>'}</div>`};
-  const k=(l,v,c='')=>`<div class="card kpi"><div class="label">${l}</div><div class="val" style="${c}">${v}</div></div>`;
+  const k=(l,v,c='',i='')=>`<div class="card kpi">${i?`<div class="kpi-ico">${i}</div>`:''}<div class="label">${l}</div><div class="val" style="${c}">${v}</div></div>`;
   return head+`<div class="grid kpis">
-    ${k('صافي المبيعات',see?fmt(R.sales):'•••')}${k('عدد الطلبات',num(R.count))}${k('متوسط الفاتورة',see?fmt(R.avg):'•••')}${k('الخصومات',see?fmt(R.disc):'•••')}
-    ${k('تكلفة المواد',cost?fmt(R.mat):'•••')}${k('مجمل الربح',see&&cost?fmt(R.sales-R.mat):'•••','color:var(--green)')}
-    ${k('المصاريف + الهدر',cost?fmt(R.exp+R.waste):'•••')}${k('صافي الربح',see&&cost?fmt(R.net):'•••',`color:${R.net<0?'var(--red)':'var(--green)'}`)}
+    ${k('صافي المبيعات',see?fmt(R.sales):'•••','','💰')}${k('عدد الطلبات',num(R.count),'','🧾')}${k('متوسط الفاتورة',see?fmt(R.avg):'•••','','📊')}${k('الخصومات',see?fmt(R.disc):'•••','','🏷️')}
+    ${k('تكلفة المواد',cost?fmt(R.mat):'•••','','🥩')}${k('مجمل الربح',see&&cost?fmt(R.sales-R.mat):'•••','color:var(--green)','📈')}
+    ${k('المصاريف + الهدر',cost?fmt(R.exp+R.waste):'•••','','💸')}${k('صافي الربح',see&&cost?fmt(R.net):'•••',`color:${R.net<0?'var(--red)':'var(--green)'}`,'🏦')}
   </div>
   <p class="muted" style="font-size:13px">${R.voids?`ملغية: ${num(R.voids)} طلب بقيمة ${see?fmt(R.voidAmt):'•••'} — غير محسوبة في المبيعات. `:''}${cost&&R.sales?'نسبة تكلفة الطعام: '+(R.mat/R.sales*100).toFixed(1)+'%':''}</p>
   <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(290px,1fr));margin-top:16px">
