@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="aurora">
+<html lang="ar" dir="rtl" data-theme="ember">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>تسجيل الدخول</title>
 <script>
-  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}'),t=p.theme;if(!p.v2&&(!t||t==='aurora'))t='ember';document.documentElement.dataset.theme=t}catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#070912">
+<meta name="theme-color" content="#121212">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="المطعم">
@@ -41,7 +41,7 @@ label input{font-size:16px;padding:12px 14px}
   <div class="err" id="err" hidden></div>
   <label>اسم المستخدم<input type="text" id="u" class="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
   <label>كلمة المرور<span class="pw"><input type="password" id="p" class="ltr" autocomplete="current-password" required style="width:100%">
-    <button type="button" onclick="const i=$('#p');i.type=i.type==='password'?'text':'password'" title="إظهار">👁</button></span></label>
+    <button type="button" onclick="const i=$('#p');i.type=i.type==='password'?'text':'password'" title="إظهار"><i class="ic ic-eye"></i></button></span></label>
   <button class="btn primary lg block" id="go" type="submit">دخول</button>
   <div class="foot">ليس لديك حساب؟ اطلبه من مدير المطعم.<br>المدير يستلم حسابه من مزوّد البرنامج.</div>
 </form>

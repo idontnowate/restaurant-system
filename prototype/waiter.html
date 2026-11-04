@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="aurora">
+<html lang="ar" dir="rtl" data-theme="ember">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#070912">
+<meta name="theme-color" content="#121212">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>تطبيق الويتر</title>
 <script>
-  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}'),t=p.theme;if(!p.v2&&(!t||t==='aurora'))t='ember';document.documentElement.dataset.theme=t}catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -71,7 +71,7 @@ dialog.sheet{margin:auto auto 0;width:100%;max-width:640px;border-radius:28px 28
   <div onclick="switchUser()" style="cursor:pointer"><b id="rName">تطبيق الويتر</b><small id="wName"></small></div>
   <div class="spacer"></div>
   <span class="net"><i></i> متصل</span>
-  <button class="btn icon-btn" onclick="quickTheme(event)" title="المظهر">🌓</button>
+  <button class="btn icon-btn" onclick="quickTheme(event)" title="المظهر"><i class="ic ic-moon"></i></button>
 </header>
 <main class="wrap" id="view"><div class="empty">جاري التحميل…</div></main>
 <div id="cartbarHost"></div>
@@ -89,43 +89,43 @@ let known={};   // آخر حالة معروفة لطلباتي: لتنبيه ا�
 
 function render(){
   if(!$('#view')) return;   // الصفحة استُبدلت (انتهاء الاشتراك أو الجلسة)
-  $('#rName').textContent=st().name; $('#logo').textContent=st().logo||'🍽';
+  $('#rName').textContent=st().name; $('#logo').innerHTML=logoHtml();
   const me=ME();
   if(!me||!can(me.role,'waiterApp')){ui.screen='login'}
-  $('#wName').textContent=me?`👤 ${me.name}`:'اختر اسمك للبدء';
+  $('#wName').textContent=me?me.name:'اختر اسمك للبدء';
   $('#view').innerHTML=SCREENS[ui.screen]();
   // شريط السلة والتبويب
   const n=ui.cart.reduce((s,l)=>s+l.qty,0);
   $('#cartbarHost').innerHTML=ui.screen==='order'&&n?`<button class="cartbar" onclick="openCart()"><span class="n">${num(n)}</span><span class="t">عرض الطلب وإرساله</span><span>${fmt(calc({items:ui.cart,type:'صالة'}).t)}</span></button>`:'';
   const ready=myOrders().filter(o=>o.status==='ready').length;
   $('#tabbar').hidden=ui.screen==='login';
-  $('#tabbar').innerHTML=`<button class="${ui.screen!=='mine'?'active':''}" onclick="ui.screen='tables';render()"><span>🪑</span>الطاولات</button>
-    <button class="${ui.screen==='mine'?'active':''}" onclick="ui.screen='mine';render()"><span>🧾</span>طلباتي${ready?`<i class="dotn">${num(ready)}</i>`:''}</button>`;
+  $('#tabbar').innerHTML=`<button class="${ui.screen!=='mine'?'active':''}" onclick="ui.screen='tables';render()"><span><i class="ic ic-table"></i></span>الطاولات</button>
+    <button class="${ui.screen==='mine'?'active':''}" onclick="ui.screen='mine';render()"><span><i class="ic ic-receipt"></i></span>طلباتي${ready?`<i class="dotn">${num(ready)}</i>`:''}</button>`;
 }
 const myOrders=()=>!ME()?[]:S.orders.filter(o=>o.by===ME().name&&o.status!=='done'&&isToday(o.createdAt)).sort((a,b)=>b.createdAt-a.createdAt);
 
 const SCREENS={
 login(){
   const list=S.staff.filter(p=>p.on&&can(p.role,'waiterApp'));
-  if(MODE==='cloud') return `<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">🚫</div>
+  if(MODE==='cloud') return `<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px"><i class="ic ic-ban"></i></div>
     <h2 style="margin:6px 0">لا توجد صلاحية</h2><p class="muted">حسابك (${esc(SESSION.user.role)}) لا يملك صلاحية تطبيق الويتر. اطلبها من مدير المطعم.</p>
     <button class="btn" onclick="logout()">تسجيل الخروج</button></div>`;
   const link='';
-  return link+`<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px">👋</div><h2 style="margin:6px 0">أهلاً بك</h2>
+  return link+`<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:44px"><i class="ic ic-user"></i></div><h2 style="margin:6px 0">أهلاً بك</h2>
     <p class="muted" style="margin:0">اختر اسمك لتبدأ استلام الطلبات</p>
-    <div class="who">${list.map(p=>`<button class="btn" onclick="login(${p.id})"><span>🧑‍🍳</span>${esc(p.name)}<div class="muted" style="font-size:12px;font-weight:600">${p.role} · ${p.shift}</div></button>`).join('')||'<div class="empty">لا يوجد موظفون لديهم صلاحية تطبيق الويتر</div>'}</div></div>`;
+    <div class="who">${list.map(p=>`<button class="btn" onclick="login(${p.id})"><span><i class="ic ic-chef"></i></span>${esc(p.name)}<div class="muted" style="font-size:12px;font-weight:600">${p.role} · ${p.shift}</div></button>`).join('')||'<div class="empty">لا يوجد موظفون لديهم صلاحية تطبيق الويتر</div>'}</div></div>`;
 },
 
 tables(){
   if(!S.floors.some(f=>f.id===ui.floor)) ui.floor=S.floors[0]?.id;
   const f=S.floors.find(x=>x.id===ui.floor);
   const lbl={free:'فارغة',busy:'مشغولة',bill:'الحساب',res:'محجوزة'};
-  return `<div class="pills">${S.floors.map(x=>`<button class="${x.id===ui.floor?'active':''}" onclick="ui.floor='${x.id}';render()">🏢 ${esc(x.name)}</button>`).join('')}</div>
+  return `<div class="pills">${S.floors.map(x=>`<button class="${x.id===ui.floor?'active':''}" onclick="ui.floor='${x.id}';render()"><i class="ic ic-building"></i> ${esc(x.name)}</button>`).join('')}</div>
   ${f?f.sections.map(s=>{const ts=S.tables.filter(t=>t.section===s.id);if(!ts.length)return '';
     return `<div class="section-title">${esc(s.name)} <span class="badge b-green">${num(ts.filter(t=>t.status==='free').length)} فارغة</span></div>
     <div class="floor">${ts.map(t=>{const mine=myOrders().filter(o=>o.table===t.id);
       return `<div class="tbl t-${t.status}" onclick="pickTable(${t.id})"><span class="muted" style="font-size:12px">طاولة</span><b>${t.id}</b><div class="st">${lbl[t.status]}</div>
-      <div class="muted" style="font-size:12px">👤 ${num(t.seats)}${mine.length?' · 🧾 '+num(mine.length):''}</div>
+      <div class="muted" style="font-size:12px"><i class="ic ic-user"></i> ${num(t.seats)}${mine.length?' · <i class="ic ic-receipt"></i> '+num(mine.length):''}</div>
       ${t.status==='busy'?`<button class="btn sm mini" onclick="event.stopPropagation();setTable(${t.id},'bill')">طلب الحساب</button>`:''}</div>`}).join('')}</div>`}).join(''):''}`;
 },
 
@@ -142,10 +142,10 @@ order(){
 },
 
 mine(){
-  const list=myOrders(), lbl={new:['بانتظار المطبخ','b-blue'],preparing:['قيد التحضير','b-amber'],ready:['جاهز — استلمه ✅','b-green']};
+  const list=myOrders(), lbl={new:['بانتظار المطبخ','b-blue'],preparing:['قيد التحضير','b-amber'],ready:['جاهز، استلمه <i class="ic ic-checkc"></i>','b-green']};
   return `<div class="title-row"><h2>طلباتي الجارية</h2><span class="muted">${num(list.length)}</span></div>
   ${list.map(o=>`<div class="card order ${o.status==='ready'?'ready':''}"><header><b>#${o.id} · طاولة ${o.table}</b><span class="badge ${lbl[o.status][1]}">${lbl[o.status][0]}</span></header>
-    <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(l.name||item(l.id)?.name||'—')}${l.note?` <span style="color:var(--red)">(${esc(l.note)})</span>`:''}</li>`).join('')}</ul>
+    <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(l.name||item(l.id)?.name||'')}${l.note?` <span style="color:var(--red)">(${esc(l.note)})</span>`:''}</li>`).join('')}</ul>
     <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px">${timeStr(o.createdAt)} · منذ ${num(mins(o.createdAt))} د</span>
     ${o.status==='ready'?`<button class="btn sm primary" onclick="delivered('${o.uid}')">تم التقديم للزبون</button>`:''}</div></div>`).join('')
     ||'<div class="empty card">لا توجد طلبات جارية</div>'}`;
@@ -177,14 +177,14 @@ function add(id){
 function openCart(){renderCart();$('#cartDlg').showModal()}
 function renderCart(){
   const c=calc({items:ui.cart,type:'صالة'});
-  $('#cartDlg').innerHTML=`<div class="row" style="justify-content:space-between"><h2 style="margin:0">طلب طاولة ${ui.table}</h2><button class="btn icon-btn" onclick="$('#cartDlg').close()">✕</button></div>
+  $('#cartDlg').innerHTML=`<div class="row" style="justify-content:space-between"><h2 style="margin:0">طلب طاولة ${ui.table}</h2><button class="btn icon-btn" onclick="$('#cartDlg').close()"><i class="ic ic-x"></i></button></div>
    <div style="overflow:auto;max-height:52vh;margin:10px 0">${ui.cart.map((l,i)=>{const m=item(l.id);return `<div class="cline">
      <div><b>${esc(m.name)}</b><div class="muted" style="font-size:13px">${fmt(m.price*l.qty)}</div></div>
      <div class="qty"><button onclick="cq(${i},-1)">−</button><span>${num(l.qty)}</span><button onclick="cq(${i},1)">+</button></div>
      <input type="text" placeholder="ملاحظة للمطبخ (بدون بصل، حار…)" value="${esc(l.note)}" onchange="ui.cart[${i}].note=this.value"></div>`}).join('')}</div>
    ${c.sv?`<div class="sum muted"><span>خدمة ${num(st().service)}%</span><span>${fmt(c.sv)}</span></div>`:''}
    <div class="sum total"><span>الإجمالي</span><span>${fmt(c.t)}</span></div>
-   <button class="btn primary lg block" style="margin-top:12px" id="sendBtn" onclick="send()">🚀 إرسال للمطبخ</button>`;
+   <button class="btn primary lg block" style="margin-top:12px" id="sendBtn" onclick="send()"><i class="ic ic-send"></i> إرسال للمطبخ</button>`;
 }
 function cq(i,d){ui.cart[i].qty+=d;if(ui.cart[i].qty<=0)ui.cart.splice(i,1);if(!ui.cart.length){$('#cartDlg').close();render();return}renderCart();render()}
 async function send(){
@@ -192,14 +192,14 @@ async function send(){
   $('#sendBtn').disabled=true;
   const o={uid:uid(),type:'صالة',table:ui.table,items:ui.cart.map(l=>({id:l.id,qty:l.qty,price:item(l.id)?.price??0,name:item(l.id)?.name||'',...(l.note?{note:l.note}:{})})),status:'new',pay:null,discount:0,by:ME().name,createdAt:Date.now()};
   try{await action({type:'order',order:o})}
-  catch(e){$('#sendBtn').disabled=false;return toast('⚠ '+errText(e))}
+  catch(e){$('#sendBtn').disabled=false;return toast('<i class="ic ic-alert"></i> '+errText(e))}
   const saved=S.orders.find(x=>x.uid===o.uid);
   known[o.uid]='new';
   $('#cartDlg').close(); ui.cart=[]; ui.screen='tables'; render();
   toast(`✓ الطلب #${saved?.id} وصل للمطبخ`); if(navigator.vibrate) navigator.vibrate([30,40,30]);
 }
-async function delivered(u){try{await action({type:'status',uid:u,status:'done'})}catch(e){return toast('⚠ لا يوجد اتصال')}render()}
-async function setTable(id,s){try{await action({type:'table',id,status:s})}catch(e){return toast('⚠ لا يوجد اتصال')}render();toast('تم إبلاغ الكاشير بطلب الحساب')}
+async function delivered(u){try{await action({type:'status',uid:u,status:'done'})}catch(e){return toast('<i class="ic ic-alert"></i> لا يوجد اتصال')}render()}
+async function setTable(id,s){try{await action({type:'table',id,status:s})}catch(e){return toast('<i class="ic ic-alert"></i> لا يوجد اتصال')}render();toast('تم إبلاغ الكاشير بطلب الحساب')}
 
 // تنبيه عندما يجهز طلب من طلباتي
 function snapshot(){known={};myOrders().forEach(o=>known[o.uid]=o.status)}
@@ -209,13 +209,13 @@ onRemote=()=>{
   if(ready.length){
     beep(1046); setTimeout(()=>beep(1318),180);
     if(navigator.vibrate) navigator.vibrate([200,100,200]);
-    toast(`🔔 جاهز: ${ready.map(o=>'طاولة '+o.table).join('، ')} — استلم من المطبخ`);
+    toast(`<i class="ic ic-bell"></i> جاهز: ${ready.map(o=>'طاولة '+o.table).join('، ')}، استلم من المطبخ`);
   }
   if(!$('#cartDlg').open) render();
 };
 
 loadState().then(()=>{snapshot();render()})
-  .catch(()=>{$('#view').innerHTML='<div class="empty card">⚠ تعذر الاتصال بالمطعم.<br>تأكد من اتصال الإنترنت أو الواي فاي ثم حدّث الصفحة.</div>'});
+  .catch(()=>{$('#view').innerHTML='<div class="empty card"><i class="ic ic-alert"></i> تعذر الاتصال بالمطعم.<br>تأكد من اتصال الإنترنت أو الواي فاي ثم حدّث الصفحة.</div>'});
 // تحديث العدادات (منذ كم دقيقة)
 setInterval(()=>{if(ui.screen==='mine'&&!blockedShown)render()},30000);
 </script>

@@ -1,9 +1,9 @@
-/* core.js — البيانات والمزامنة والأدوات المشتركة بين لوحة الإدارة وتطبيق الويتر
+/* core.js، البيانات والمزامنة والأدوات المشتركة بين لوحة الإدارة وتطبيق الويتر
  *
  * يعمل بثلاث طرق (تُختار تلقائياً عند فتح الصفحة):
- *  server — خادم المطعم (server.py) على نفس شبكة الواي فاي، بدون حسابات.
- *  cloud  — عبر الإنترنت (Supabase): كل مطعم بحساباته وبياناته، مع تسجيل دخول.
- *  local  — هذا المتصفح فقط (للتجربة عندما لا يوجد خادم ولا إنترنت مُعد).
+ *  server، خادم المطعم (server.py) على نفس شبكة الواي فاي، بدون حسابات.
+ *  cloud ، عبر الإنترنت (Supabase): كل مطعم بحساباته وبياناته، مع تسجيل دخول.
+ *  local ، هذا المتصفح فقط (للتجربة عندما لا يوجد خادم ولا إنترنت مُعد).
  */
 
 /* ============ الإعدادات الافتراضية ============ */
@@ -12,7 +12,7 @@ const DEF_SETTINGS={
   currency:'د.ع', usdRate:1310,
   types:{'صالة':true,'سفري':true,'توصيل':true}, service:10, tax:0, maxDiscount:20, roundTo:250, requireTable:true,
   pays:{'نقدي':true,'بطاقة':true,'محفظة':true,'آجل':false},
-  receiptHeader:'أهلاً وسهلاً بكم', receiptFooter:'شكراً لزيارتكم — نتمنى لكم وجبة شهية', receiptWidth:'80', autoPrint:false, showQR:false, showLogo:true,
+  receiptHeader:'أهلاً وسهلاً بكم', receiptFooter:'شكراً لزيارتكم، نتمنى لكم وجبة شهية', receiptWidth:'80', autoPrint:false, showQR:false, showLogo:true,
   warnMin:10, lateMin:20, kdsSound:true, kitchenTicket:false,
   deliveryFee:2000, minDelivery:10000, zones:[{name:'المنطقة 1',fee:2000}],
   autoDeduct:true, sellOutOfStock:true, lowAlert:true,
@@ -198,17 +198,17 @@ async function rpc(fn,args={},{noAuth=false}={}){
 }
 const ERR_TEXT={
   NETWORK:'لا يوجد اتصال بالإنترنت', LOGIN:'اسم المستخدم أو كلمة المرور غير صحيحة',
-  LOCKED:'محاولات كثيرة خاطئة — حاول بعد 15 دقيقة', INACTIVE:'هذا الحساب موقوف — راجع مدير المطعم',
-  SUSPENDED:'اشتراك المطعم موقوف — تواصل مع مزوّد البرنامج', EXPIRED:'انتهى اشتراك المطعم — تواصل مع مزوّد البرنامج لتجديده',
-  AUTH:'انتهت الجلسة — سجّل الدخول مرة أخرى', FORBIDDEN:'ليست لديك صلاحية لهذه العملية',
-  TAKEN:'اسم المستخدم مستخدم من قبل — اختر اسماً آخر', USERNAME:'اسم المستخدم: 3 أحرف على الأقل، إنجليزي وأرقام فقط (. _ - مسموحة)',
+  LOCKED:'محاولات كثيرة خاطئة، حاول بعد 15 دقيقة', INACTIVE:'هذا الحساب موقوف، راجع مدير المطعم',
+  SUSPENDED:'اشتراك المطعم موقوف، تواصل مع مزوّد البرنامج', EXPIRED:'انتهى اشتراك المطعم، تواصل مع مزوّد البرنامج لتجديده',
+  AUTH:'انتهت الجلسة، سجّل الدخول مرة أخرى', FORBIDDEN:'ليست لديك صلاحية لهذه العملية',
+  TAKEN:'اسم المستخدم مستخدم من قبل، اختر اسماً آخر', USERNAME:'اسم المستخدم: 3 أحرف على الأقل، إنجليزي وأرقام فقط (. _ - مسموحة)',
   WEAK_PASSWORD:'كلمة المرور يجب أن تكون 6 أحرف على الأقل', NAME:'أدخل الاسم', SELF:'لا يمكنك إيقاف حسابك أو تغيير دورك',
-  LIMIT:'وصلت للحد الأقصى من الموظفين في اشتراكك', BAD_IMAGE:'الصورة غير صالحة أو كبيرة جداً', TOO_BIG:'البيانات كبيرة جداً — قلّل الصور',
+  LIMIT:'وصلت للحد الأقصى من الموظفين في اشتراكك', BAD_IMAGE:'الصورة غير صالحة أو كبيرة جداً', TOO_BIG:'البيانات كبيرة جداً، قلّل الصور',
   NOT_FOUND:'غير موجود',
 };
 const errText=e=>{
   const c=e?.code||e?.message||e;
-  if(/Could not find the function|schema cache/.test(c)) return 'قاعدة البيانات غير مُحدَّثة — شغّل ملف supabase/restaurant-sync.sql في Supabase';
+  if(/Could not find the function|schema cache/.test(c)) return 'قاعدة البيانات غير مُحدَّثة، شغّل ملف supabase/restaurant-sync.sql في Supabase';
   return ERR_TEXT[c]||('حدث خطأ: '+c);
 };
 
@@ -224,10 +224,10 @@ function blocked(code){
   const exp=SESSION?.user?.restaurant?.expires_at;
   document.body.innerHTML=`<div style="min-height:100vh;display:grid;place-items:center;padding:16px">
     <div class="card" style="max-width:440px;text-align:center;padding:28px">
-      <div style="font-size:48px">${code==='EXPIRED'?'⏳':'⛔'}</div>
+      <div style="font-size:48px;color:var(--muted)">${icon(code==='EXPIRED'?'hourglass':'ban')}</div>
       <h2 style="margin:8px 0">${code==='EXPIRED'?'انتهى الاشتراك':'الاشتراك موقوف'}</h2>
       <p class="muted">${ERR_TEXT[code]}${code==='EXPIRED'&&exp?`<br>تاريخ الانتهاء: <b class="ltr">${new Date(exp).toLocaleDateString('en-GB')}</b>`:''}</p>
-      <p class="muted" style="font-size:13px">بياناتك محفوظة ولن تُحذف — تعود فور التجديد.</p>
+      <p class="muted" style="font-size:13px">بياناتك محفوظة ولن تُحذف، تعود فور التجديد.</p>
       <button class="btn" onclick="logout()">تسجيل الخروج</button></div></div>`;
 }
 async function logout(){
@@ -266,8 +266,8 @@ async function loadState(){
   addEventListener('storage',e=>{if(MODE==='local'&&e.key===KEY&&e.newValue){S=JSON.parse(e.newValue);migrate();onRemote()}});
 }
 function save(){
-  if(MODE==='local'){if(!lsSet(KEY,JSON.stringify(S)))toast('⚠ مساحة التخزين ممتلئة — قلّل الصور');return}
-  if(MODE==='cloud'&&V<0){toast('⚠ لا يوجد اتصال بالإنترنت — التعديل لن يُحفظ');return}
+  if(MODE==='local'){if(!lsSet(KEY,JSON.stringify(S)))toast('⚠ مساحة التخزين ممتلئة، قلّل الصور');return}
+  if(MODE==='cloud'&&V<0){toast('⚠ لا يوجد اتصال بالإنترنت، التعديل لن يُحفظ');return}
   dirty=true; clearTimeout(putTimer); putTimer=setTimeout(pushNow,300);
 }
 async function pushNow(){
@@ -459,9 +459,11 @@ function applyOp(s,op){
 
 /* ============ تفضيلات هذا الجهاز ============ */
 const PKEY='rms-prefs';
-let P={theme:'aurora',lastDark:'aurora',motion:'on',font:15,user:1,waiter:null};
+let P={theme:'ember',lastDark:'ember',motion:'on',font:15,user:1,waiter:null};
 try{P={...P,...JSON.parse(localStorage.getItem(PKEY)||'{}')}}catch(e){}
 const savePrefs=()=>{try{localStorage.setItem(PKEY,JSON.stringify(P))}catch(e){}};
+// المظهر الافتراضي تغيّر إلى «الداكن الدافئ»: ننقل الأجهزة التي كانت على الافتراضي القديم مرة واحدة
+if(!P.v2){if(P.theme==='aurora')P.theme='ember';if(P.lastDark==='aurora')P.lastDark='ember';P.v2=1;savePrefs()}
 function applyPrefs(){const r=document.documentElement;r.dataset.theme=P.theme;r.dataset.motion=P.motion;r.style.fontSize=P.font+'px'}
 function setPref(k,v,ev){
   const prev=P.theme; P[k]=v; if(k==='theme'&&v!=='light') P.lastDark=v; savePrefs();
@@ -506,8 +508,11 @@ const available=m=>m.on&&(st().sellOutOfStock||canMake(m));
 const mins=t=>Math.floor((Date.now()-t)/60e3);
 const dayStart=(t=Date.now())=>new Date(t).setHours(0,0,0,0);
 const isToday=t=>t>=dayStart();
-const pic=m=>{const s=imgSrc(m.img);return s?`<img src="${s}" alt="">`:esc(m.emo||'🍽')};
-const logoHtml=()=>{const s=imgSrc(st().logoImg);return s?`<img src="${s}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:esc(st().logo||'🍽')};
+// بدون صورة: الرمز الذي اختاره المطعم، وإلا الحرف الأول من الاسم
+const initial=t=>`<span class="initial">${esc((t||'؟').trim()[0])}</span>`;
+const pic=m=>{const s=imgSrc(m.img);return s?`<img src="${s}" alt="">`:m.emo&&m.emo!=='🍽'?esc(m.emo):initial(m.name)};
+const icon=n=>`<i class="ic ic-${n}"></i>`;
+const logoHtml=()=>{const s=imgSrc(st().logoImg);return s?`<img src="${s}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:st().logo&&st().logo!=='🍽'?esc(st().logo):initial(st().name)};
 // مكان الطاولة: الطابق والقسم
 function tablePlace(id){
   const t=S.tables.find(x=>x.id===id); if(!t) return null;
@@ -515,7 +520,9 @@ function tablePlace(id){
   return {t,f:null,s:null};
 }
 const tableName=id=>{const p=tablePlace(id);return p?.s?`طاولة ${id} · ${p.s.name}`:`طاولة ${id}`};
-function toast(msg){const t=$('#toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2800)}
+function toast(msg){const t=$('#toast');if(!t)return;
+  // الإشعار نص فقط: نحذف الأيقونات والرموز من بدايته
+  t.textContent=String(msg).replace(/<i class="ic[^"]*"><\/i>\s*/g,'').replace(/^[\u2600-\u27BF\u{1F300}-\u{1FAFF}\uFE0F]+\s*/u,'');t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2800)}
 function beep(f=880){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.5);o.start();o.stop(a.currentTime+.5)}catch(e){}}
 // الصلاحيات: المدير يرى كل شيء دائماً
 const can=(role,k)=>role==='مدير'||!!S.perms[role]?.[k];
@@ -553,7 +560,7 @@ function printHtml(body){
 }
 function receiptHtml(o,{title='فاتورة',orders}={}){
   const s=st(), c=calc(o), logo=imgSrc(s.logoImg);
-  const lines=o.items.map(l=>{const m=item(l.id),p=l.price??m?.price??0;return `<div class="r"><span>${num(l.qty)} × ${esc(l.name||m?.name||'—')}</span><span>${num(p*l.qty)}</span></div>`}).join('');
+  const lines=o.items.map(l=>{const m=item(l.id),p=l.price??m?.price??0;return `<div class="r"><span>${num(l.qty)} × ${esc(l.name||m?.name||'')}</span><span>${num(p*l.qty)}</span></div>`}).join('');
   return `<div class="c">${s.showLogo?(logo?`<img src="${logo}"><br>`:`<div style="font-size:22px">${esc(s.logo)}</div>`):''}
     <h1>${esc(s.name)}</h1>${esc(s.branch)}${s.phone?' · '+esc(s.phone):''}${s.address?'<br>'+esc(s.address):''}
     ${s.receiptHeader?'<br>'+esc(s.receiptHeader):''}</div><hr>
@@ -572,9 +579,9 @@ function receiptHtml(o,{title='فاتورة',orders}={}){
 }
 function printReceipt(o,opts){printHtml(receiptHtml(o,opts))}
 function printTicket(o){
-  printHtml(`<div class="c"><h2>#${o.id}</h2><div class="big b">${esc(o.type)}${o.table?' — '+esc(tableName(o.table)):''}</div>
+  printHtml(`<div class="c"><h2>#${o.id}</h2><div class="big b">${esc(o.type)}${o.table?'، '+esc(tableName(o.table)):''}</div>
     <div>${timeStr(o.createdAt)} · ${esc(o.by||'')}</div></div><hr>
-    ${o.items.map(l=>`<div class="big b">${num(l.qty)} × ${esc(item(l.id)?.name||'—')}</div>${l.note?`<div>⚠ ${esc(l.note)}</div>`:''}`).join('')}
+    ${o.items.map(l=>`<div class="big b">${num(l.qty)} × ${esc(item(l.id)?.name||'')}</div>${l.note?`<div>* ${esc(l.note)}</div>`:''}`).join('')}
     ${o.note?`<hr><div>ملاحظة: ${esc(o.note)}</div>`:''}`);
 }
 // تنزيل ملف (CSV للتقارير، JSON للنسخ الاحتياطي)

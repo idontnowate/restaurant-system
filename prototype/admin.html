@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="aurora">
+<html lang="ar" dir="rtl" data-theme="ember">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>إدارة المطعم</title>
 <script>
   // تطبيق المظهر قبل رسم الصفحة حتى لا يومض المظهر الافتراضي
-  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}'),t=p.theme;if(!p.v2&&(!t||t==='aurora'))t='ember';document.documentElement.dataset.theme=t}catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#070912">
+<meta name="theme-color" content="#121212">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="المطعم">
@@ -222,19 +222,19 @@
   <aside class="side" id="side">
     <div class="brand"><div class="logo" id="brandLogo">🍽</div><div><b id="brandName"></b><small id="brandBranch"></small></div></div>
     <nav class="nav" id="nav"></nav>
-    <a class="side-link" href="waiter.html" target="_blank"><span class="ico">📱</span>تطبيق الويتر</a>
-    <a class="side-link" href="connect.html" target="_blank"><span class="ico">🔗</span>ربط الموبايلات (QR)</a>
+    <a class="side-link" href="waiter.html" target="_blank"><span class="ico"><i class="ic ic-phone"></i></span>تطبيق الويتر</a>
+    <a class="side-link" href="connect.html" target="_blank"><span class="ico"><i class="ic ic-qr"></i></span>ربط الموبايلات (QR)</a>
     <div class="me" id="me"></div>
   </aside>
   <main class="main">
     <div class="top">
-      <button class="btn icon-btn menu-btn" onclick="$('#side').classList.toggle('open')">☰</button>
+      <button class="btn icon-btn menu-btn" onclick="$('#side').classList.toggle('open')"><i class="ic ic-menu"></i></button>
       <div class="page-ico" id="pageIco"></div>
       <div><h1 id="pageTitle"></h1><div class="sub" id="pageSub"></div></div>
       <div class="spacer"></div>
       <span class="net"><i></i> متصل</span>
       <span class="muted" id="clock"></span>
-      <button class="btn icon-btn" onclick="quickTheme(event)" title="تبديل بين الفاتح والداكن">🌓</button>
+      <button class="btn icon-btn" onclick="quickTheme(event)" title="تبديل بين الفاتح والداكن"><i class="ic ic-moon"></i></button>
     </div>
     <div id="banner"></div>
     <div id="view"><div class="empty">جاري التحميل…</div></div>
@@ -260,21 +260,21 @@ const H='<span class="muted">•••</span>';
 
 /* ============ التنقل ============ */
 const PAGES=[
-  {id:'dash',ico:'📊',t:'لوحة التحكم',s:'نظرة سريعة على أداء اليوم'},
-  {id:'pos',ico:'🧾',t:'نقطة البيع',s:'تسجيل طلب جديد'},
-  {id:'kds',ico:'👨‍🍳',t:'شاشة المطبخ',s:'الطلبات الجارية — تصل مباشرة من الكاشير والويتر'},
-  {id:'tables',ico:'🪑',t:'الطاولات',s:'الطوابق والأقسام والحسابات والحجوزات'},
-  {id:'orders',ico:'📋',t:'الطلبات',s:'سجل الطلبات والفواتير'},
+  {id:'dash',ico:'<i class="ic ic-chart"></i>',t:'لوحة التحكم',s:'نظرة سريعة على أداء اليوم'},
+  {id:'pos',ico:'<i class="ic ic-receipt"></i>',t:'نقطة البيع',s:'تسجيل طلب جديد'},
+  {id:'kds',ico:'<i class="ic ic-chef"></i>',t:'شاشة المطبخ',s:'الطلبات الجارية، تصل مباشرة من الكاشير والويتر'},
+  {id:'tables',ico:'<i class="ic ic-table"></i>',t:'الطاولات',s:'الطوابق والأقسام والحسابات والحجوزات'},
+  {id:'orders',ico:'<i class="ic ic-clipboard"></i>',t:'الطلبات',s:'سجل الطلبات والفواتير'},
   {sep:'الإدارة'},
-  {id:'menu',ico:'🍔',t:'المنيو',s:'الأصناف والصور والأسعار والوصفات'},
-  {id:'inv',ico:'📦',t:'المخزون',s:'المواد الخام والاستلام والهدر'},
-  {id:'cust',ico:'⭐',t:'العملاء',s:'الزبائن ونقاط الولاء'},
-  {id:'cash',ico:'💰',t:'الصندوق',s:'الوردية الحالية وإغلاقها (تقرير Z)'},
-  {id:'expenses',ico:'💸',t:'المصاريف',s:'الإيجار والرواتب والكهرباء وغيرها'},
-  {id:'reports',ico:'📈',t:'التقارير',s:'المبيعات والأرباح حسب الفترة'},
-  {id:'staff',ico:'👥',t:'الموظفين',s:'حسابات الموظفين وأدوارهم'},
-  {id:'log',ico:'🕓',t:'سجل العمليات',s:'من فعل ماذا ومتى'},
-  {id:'settings',ico:'⚙️',t:'الإعدادات',s:'إعدادات المطعم وحسابك وهذا الجهاز'},
+  {id:'menu',ico:'<i class="ic ic-utensils"></i>',t:'المنيو',s:'الأصناف والصور والأسعار والوصفات'},
+  {id:'inv',ico:'<i class="ic ic-box"></i>',t:'المخزون',s:'المواد الخام والاستلام والهدر'},
+  {id:'cust',ico:'<i class="ic ic-star"></i>',t:'العملاء',s:'الزبائن ونقاط الولاء'},
+  {id:'cash',ico:'<i class="ic ic-wallet"></i>',t:'الصندوق',s:'الوردية الحالية وإغلاقها (تقرير Z)'},
+  {id:'expenses',ico:'<i class="ic ic-banknote"></i>',t:'المصاريف',s:'الإيجار والرواتب والكهرباء وغيرها'},
+  {id:'reports',ico:'<i class="ic ic-trending"></i>',t:'التقارير',s:'المبيعات والأرباح حسب الفترة'},
+  {id:'staff',ico:'<i class="ic ic-users"></i>',t:'الموظفين',s:'حسابات الموظفين وأدوارهم'},
+  {id:'log',ico:'<i class="ic ic-history"></i>',t:'سجل العمليات',s:'من فعل ماذا ومتى'},
+  {id:'settings',ico:'<i class="ic ic-sliders"></i>',t:'الإعدادات',s:'إعدادات المطعم وحسابك وهذا الجهاز'},
 ];
 function go(p){ui.page=p;$('#side').classList.remove('open');render();scrollTo(0,0)}
 function renderNav(){
@@ -289,9 +289,9 @@ function renderNav(){
   const me=ME();
   $('#me').innerHTML=MODE==='cloud'
     ?`<div class="me-card"><div class="avatar">${esc((me.name||'?').trim()[0])}</div><div class="info"><b>${esc(me.name)}</b><small>${me.role} · <span class="ltr">${esc(me.username||'')}</span></small></div></div>
-      <div class="acts"><button class="btn sm" onclick="ui.set='account';go('settings')">🔑 حسابي</button><button class="btn sm" onclick="if(confirm('تسجيل الخروج؟'))logout()">خروج ⎋</button></div>`
+      <div class="acts"><button class="btn sm" onclick="ui.set='account';go('settings')"><i class="ic ic-key"></i> حسابي</button><button class="btn sm" onclick="if(confirm('تسجيل الخروج؟'))logout()">خروج <i class="ic ic-logout"></i></button></div>`
     :`<div class="me-card"><div class="avatar">${esc((me.name||'?').trim()[0])}</div><div class="info"><b>${esc(me.name)}</b><small>${me.role} · المستخدم الحالي</small></div></div>
-      <select onchange="P.user=isNaN(+this.value)?this.value:+this.value;savePrefs();render()">${S.staff.map(p=>`<option value="${esc(p.id)}" ${p.id===me.id?'selected':''}>${esc(p.name)} — ${p.role}</option>`).join('')}</select>
+      <select onchange="P.user=isNaN(+this.value)?this.value:+this.value;savePrefs();render()">${S.staff.map(p=>`<option value="${esc(p.id)}" ${p.id===me.id?'selected':''}>${esc(p.name)} · ${p.role}</option>`).join('')}</select>
       <div class="muted" style="font-size:11px;margin-top:6px">${MODE==='server'?'خادم المطعم (بدون حسابات)':'وضع التجربة على هذا الجهاز'}</div>`;
 }
 const lowItems=()=>st().lowAlert?S.inventory.filter(i=>i.qty<=i.min):[];
@@ -302,7 +302,7 @@ function renderBanner(){
   let h='';
   if(MODE==='cloud'){
     const exp=new Date(SESSION.user.restaurant?.expires_at), days=Math.ceil((exp-Date.now())/864e5);
-    if(days<=7) h=`<div class="banner">⏳ ينتهي اشتراك المطعم بعد ${num(Math.max(days,0))} ${days===1?'يوم':'أيام'} (${exp.toLocaleDateString('en-GB')}) — تواصل مع مزوّد البرنامج للتجديد.</div>`;
+    if(days<=7) h=`<div class="banner"><i class="ic ic-hourglass"></i> ينتهي اشتراك المطعم بعد ${num(Math.max(days,0))} ${days===1?'يوم':'أيام'} (${exp.toLocaleDateString('en-GB')})، تواصل مع مزوّد البرنامج للتجديد.</div>`;
   }
   $('#banner').innerHTML=h;
 }
@@ -310,11 +310,11 @@ function render(){
   if(!$('#view')) return;
   if(!canI(ui.page)) ui.page=PAGES.find(p=>p.id&&canI(p.id))?.id||'dash';
   const p=PAGES.find(x=>x.id===ui.page);
-  $('#pageTitle').textContent=p.t; $('#pageSub').textContent=p.s; $('#pageIco').textContent=p.ico;
+  $('#pageTitle').textContent=p.t; $('#pageSub').textContent=p.s; $('#pageIco').innerHTML=p.ico;
   $('#brandName').textContent=st().name; $('#brandBranch').textContent=st().branch; $('#brandLogo').innerHTML=logoHtml();
-  document.title=st().name+' — '+p.t;
+  document.title=st().name+'، '+p.t;
   renderNav(); renderBanner();
-  $('#view').innerHTML=canI(ui.page)?VIEWS[ui.page]():'<div class="empty card">لا توجد صفحات مسموحة لحسابك — راجع المدير</div>';
+  $('#view').innerHTML=canI(ui.page)?VIEWS[ui.page]():'<div class="empty card">لا توجد صفحات مسموحة لحسابك، راجع المدير</div>';
 }
 // تحديث من جهاز آخر: لا نعيد الرسم أثناء الكتابة في حقل حتى لا يضيع ما يكتبه المستخدم
 let pendingRender=false, seenOrders=new Set();
@@ -335,19 +335,19 @@ $('#dlg').addEventListener('close',()=>{if(pendingRender){pendingRender=false;re
 /* ============ أدوات الحوار ============ */
 function openDlg(title,body,foot='',wide=false){
   const d=$('#dlg'); d.className=wide?'wide':'';
-  d.innerHTML=`<div class="dlg-head"><h2>${title}</h2><button class="btn icon-btn" onclick="closeDlg()">✕</button></div>${body}${foot?`<div class="dlg-foot">${foot}</div>`:''}`;
+  d.innerHTML=`<div class="dlg-head"><h2>${title}</h2><button class="btn icon-btn" onclick="closeDlg()"><i class="ic ic-x"></i></button></div>${body}${foot?`<div class="dlg-foot">${foot}</div>`:''}`;
   if(!d.open) d.showModal();
 }
 const closeDlg=()=>$('#dlg').close();
 const val=id=>$('#'+id)?.value?.trim()??'';
-const PAYC={'نقدي':['💵','#16a34a'],'بطاقة':['💳','#2563eb'],'محفظة':['📱','#9333ea'],'آجل':['📒','#d97706']};
+const PAYC={'نقدي':['<i class="ic ic-banknote"></i>','#2f9e6b'],'بطاقة':['<i class="ic ic-card"></i>','#3b6fd8'],'محفظة':['<i class="ic ic-phone"></i>','#1f8a8a'],'آجل':['<i class="ic ic-book"></i>','#b7791f']};
 const payButtons=fn=>Object.keys(st().pays).filter(k=>st().pays[k]).map(k=>`<button style="background-color:${PAYC[k][1]}" onclick="${fn}('${k}')">${PAYC[k][0]} ${k}</button>`).join('');
 function statusBadge(o){
   if(o.status==='void') return '<span class="badge b-red">ملغي</span>';
   const s={new:'<span class="badge b-blue">جديد</span>',preparing:'<span class="badge b-amber">قيد التحضير</span>',ready:'<span class="badge b-green">جاهز</span>',done:'<span class="badge b-gray">مُسلَّم</span>'}[o.status];
   return s+(o.pay?'':' <span class="badge b-amber">غير مدفوع</span>');
 }
-const lineName=l=>l.name||item(l.id)?.name||'—';
+const lineName=l=>l.name||item(l.id)?.name||'';
 
 /* ============ الفترات الزمنية ============ */
 const RANGES=[['today','اليوم'],['yesterday','أمس'],['7d','7 أيام'],['30d','30 يوماً'],['month','هذا الشهر'],['custom','فترة محددة']];
@@ -370,7 +370,7 @@ function ordersIn([from,to]){
   const k=from+'|'+to, c=arcCache[k];
   if(!c){arcCache[k]='loading';
     rpc('rms_orders_range',{p_token:TOKEN(),p_from:new Date(from).toISOString(),p_to:new Date(to).toISOString()})
-      .then(a=>{arcCache[k]=a;render()}).catch(e=>{arcCache[k]=[];toast('⚠ '+errText(e))});
+      .then(a=>{arcCache[k]=a;render()}).catch(e=>{arcCache[k]=[];toast('<i class="ic ic-alert"></i> '+errText(e))});
     return null}
   if(c==='loading') return null;
   const seen=new Set(live.map(o=>o.uid));
@@ -393,25 +393,25 @@ dash(){
   const low=lowItems(), live=S.orders.filter(o=>o.status!=='done'&&o.status!=='void'), due=dueTables();
   return `
   <div class="grid kpis">
-    <div class="card kpi"><div class="kpi-ico">💰</div><div class="label">مبيعات اليوم</div><div class="val">${see?fmt(sales):'•••'}</div>
+    <div class="card kpi"><div class="kpi-ico"><i class="ic ic-wallet"></i></div><div class="label">مبيعات اليوم</div><div class="val">${see?fmt(sales):'•••'}</div>
       <div class="hint ${diff<0?'down':''}">${!see?'مخفي حسب الصلاحيات':diff==null?'لا توجد مبيعات أمس للمقارنة':`${diff<0?'▼':'▲'} ${num(Math.abs(diff))}% عن أمس بنفس الوقت`}</div></div>
-    <div class="card kpi"><div class="kpi-ico">🧾</div><div class="label">عدد الطلبات</div><div class="val">${num(today.length)}</div><div class="hint">${num(live.length)} قيد التنفيذ</div></div>
-    <div class="card kpi"><div class="kpi-ico">📊</div><div class="label">متوسط الفاتورة</div><div class="val">${see?fmt(today.length?sales/today.length:0):'•••'}</div><div class="hint" style="color:var(--muted)">لكل طلب</div></div>
-    <div class="card kpi"><div class="kpi-ico">🪑</div><div class="label">الطاولات المشغولة</div><div class="val ltr">${num(busy)} / ${num(S.tables.length)}</div><div class="hint" style="color:${due.length?'var(--amber)':'var(--muted)'}">${due.length?num(due.length)+' بانتظار الحساب':num(S.tables.length?busy/S.tables.length*100:0)+'% إشغال'}</div></div>
+    <div class="card kpi"><div class="kpi-ico"><i class="ic ic-receipt"></i></div><div class="label">عدد الطلبات</div><div class="val">${num(today.length)}</div><div class="hint">${num(live.length)} قيد التنفيذ</div></div>
+    <div class="card kpi"><div class="kpi-ico"><i class="ic ic-chart"></i></div><div class="label">متوسط الفاتورة</div><div class="val">${see?fmt(today.length?sales/today.length:0):'•••'}</div><div class="hint" style="color:var(--muted)">لكل طلب</div></div>
+    <div class="card kpi"><div class="kpi-ico"><i class="ic ic-table"></i></div><div class="label">الطاولات المشغولة</div><div class="val ltr">${num(busy)} / ${num(S.tables.length)}</div><div class="hint" style="color:${due.length?'var(--amber)':'var(--muted)'}">${due.length?num(due.length)+' بانتظار الحساب':num(S.tables.length?busy/S.tables.length*100:0)+'% إشغال'}</div></div>
   </div>
   <div class="grid two" style="margin-top:16px">
-    <div class="card"><h3>📈 ${see?'المبيعات حسب الساعة':'الطلبات حسب الساعة'}</h3>
+    <div class="card"><h3><i class="ic ic-trending"></i> ${see?'المبيعات حسب الساعة':'الطلبات حسب الساعة'}</h3>
       <div class="bars">${Object.entries(hours).map(([h,v])=>`<div class="bar" title="${see?fmt(v):num(v)}"><i style="height:${v/maxH*100}%"></i><span>${h}</span></div>`).join('')}</div></div>
-    <div class="card"><h3>🏆 الأكثر مبيعاً اليوم</h3>
+    <div class="card"><h3><i class="ic ic-award"></i> الأكثر مبيعاً اليوم</h3>
       ${top.map(t=>`<div class="hbar"><span class="name">${esc(t.name)}</span><div class="track"><div class="fill" style="width:${t.qty/maxT*100}%"></div></div><span class="num">${num(t.qty)}</span></div>`).join('')||'<div class="empty">لا مبيعات بعد</div>'}</div>
   </div>
   <div class="grid two" style="margin-top:16px">
-    <div class="card"><div class="row" style="justify-content:space-between"><h3>⏱️ طلبات جارية</h3>${canI('kds')?`<button class="btn sm" onclick="go('kds')">شاشة المطبخ ←</button>`:''}</div>
+    <div class="card"><div class="row" style="justify-content:space-between"><h3><i class="ic ic-clock"></i> طلبات جارية</h3>${canI('kds')?`<button class="btn sm" onclick="go('kds')">شاشة المطبخ ←</button>`:''}</div>
       <div class="table-wrap"><table><tr><th>#</th><th>النوع</th><th>بواسطة</th><th>المدة</th><th>الحالة</th></tr>
-      ${live.map(o=>`<tr><td>${o.id}</td><td>${o.type}${o.table?' · '+esc(tableName(o.table)):''}</td><td class="muted">${esc(o.by||'—')}</td><td>${num(mins(o.createdAt))} د</td><td>${statusBadge(o)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">لا توجد طلبات جارية</td></tr>'}</table></div></div>
-    <div class="card"><h3>⚠️ تنبيهات المخزون</h3>
+      ${live.map(o=>`<tr><td>${o.id}</td><td>${o.type}${o.table?' · '+esc(tableName(o.table)):''}</td><td class="muted">${esc(o.by||'')}</td><td>${num(mins(o.createdAt))} د</td><td>${statusBadge(o)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">لا توجد طلبات جارية</td></tr>'}</table></div></div>
+    <div class="card"><h3><i class="ic ic-alert"></i> تنبيهات المخزون</h3>
       ${!st().lowAlert?'<div class="empty">التنبيهات متوقفة من الإعدادات</div>':
-        low.map(i=>`<div class="row" style="justify-content:space-between;padding:6px 0"><span>${esc(i.name)}</span><span class="badge b-red">${dec(i.qty)} ${esc(i.unit)}</span></div>`).join('')||'<div class="empty">المخزون سليم ✓</div>'}
+        low.map(i=>`<div class="row" style="justify-content:space-between;padding:6px 0"><span>${esc(i.name)}</span><span class="badge b-red">${dec(i.qty)} ${esc(i.unit)}</span></div>`).join('')||'<div class="empty">المخزون سليم</div>'}
       ${low.length&&canI('inv')?`<button class="btn sm" style="margin-top:8px" onclick="go('inv')">إدارة المخزون</button>`:''}</div>
   </div>`;
 },
@@ -421,23 +421,23 @@ pos(){
   const zones=st().zones, c=cartCalc();
   return `<div class="pos">
    <div>
-     <div class="toolbar"><input type="search" class="search" placeholder="🔍 بحث عن صنف…" value="${esc(ui.q)}" oninput="ui.q=this.value;$('#posItems').innerHTML=posItems()"></div>
+     <div class="toolbar"><input type="search" class="search" placeholder="بحث عن صنف…" value="${esc(ui.q)}" oninput="ui.q=this.value;$('#posItems').innerHTML=posItems()"></div>
      <div class="pills">${['الكل',...S.categories].map(x=>`<button class="${ui.cat===x?'active':''}" onclick="ui.cat=this.dataset.c;render()" data-c="${esc(x)}">${esc(x)}</button>`).join('')}</div>
      <div class="items" id="posItems">${posItems()}</div>
    </div>
    <div class="card cart">
-     <div class="cart-head"><b>🧾 الطلب الحالي</b>${ui.cart.length?`<span class="badge b-blue">${num(ui.cart.reduce((s,l)=>s+l.qty,0))} صنف</span>`:''}</div>
+     <div class="cart-head"><b><i class="ic ic-receipt"></i> الطلب الحالي</b>${ui.cart.length?`<span class="badge b-blue">${num(ui.cart.reduce((s,l)=>s+l.qty,0))} صنف</span>`:''}</div>
      <div class="seg">${types.map(t=>`<button class="${ui.type===t?'active':''}" onclick="ui.type='${t}';render()">${t}</button>`).join('')}</div>
      ${ui.type==='صالة'?`<select style="width:100%" onchange="ui.table=this.value">${tableOptions(ui.table)}</select>`:''}
      ${ui.type!=='صالة'?`<div class="cust-fields">
-        <input type="tel" class="ltr" placeholder="📞 هاتف الزبون${ui.type==='توصيل'?'':' (اختياري)'}" list="custList" value="${esc(ui.cust.phone)}" onchange="pickCustomer(this.value)">
+        <input type="tel" class="ltr" placeholder="هاتف الزبون${ui.type==='توصيل'?'':' (اختياري)'}" list="custList" value="${esc(ui.cust.phone)}" onchange="pickCustomer(this.value)">
         <datalist id="custList">${S.customers.map(c=>`<option value="${esc(c.phone)}">${esc(c.name)}</option>`).join('')}</datalist>
         <input type="text" placeholder="اسم الزبون" value="${esc(ui.cust.name)}" onchange="ui.cust.name=this.value">
-        ${ui.type==='توصيل'?`<input type="text" placeholder="📍 العنوان" value="${esc(ui.cust.address)}" onchange="ui.cust.address=this.value">
+        ${ui.type==='توصيل'?`<input type="text" placeholder="العنوان" value="${esc(ui.cust.address)}" onchange="ui.cust.address=this.value">
         <select onchange="ui.zone=+this.value;render()">${zones.map((z,i)=>`<option value="${i}" ${ui.zone===i?'selected':''}>${esc(z.name)} (${num(z.fee)})</option>`).join('')}</select>`:''}</div>`:''}
-     <div class="lines">${ui.cart.map((l,i)=>`<div class="line"><div class="info"><b>${esc(lineName(l))}</b><span class="muted" style="font-size:13px">${fmt(l.price*l.qty)}</span>${l.note?`<div class="note">⚠ ${esc(l.note)}</div>`:''}</div>
-       <button class="nbtn" title="ملاحظة للمطبخ" onclick="lineNote(${i})">📝</button>
-       <div class="qty"><button onclick="qty(${i},-1)">−</button><span>${num(l.qty)}</span><button onclick="qty(${i},1)">+</button></div></div>`).join('')||'<div class="empty">اضغط على صنف لإضافته 👈</div>'}</div>
+     <div class="lines">${ui.cart.map((l,i)=>`<div class="line"><div class="info"><b>${esc(lineName(l))}</b><span class="muted" style="font-size:13px">${fmt(l.price*l.qty)}</span>${l.note?`<div class="note"><i class="ic ic-alert"></i> ${esc(l.note)}</div>`:''}</div>
+       <button class="nbtn" title="ملاحظة للمطبخ" onclick="lineNote(${i})"><i class="ic ic-note"></i></button>
+       <div class="qty"><button onclick="qty(${i},-1)">−</button><span>${num(l.qty)}</span><button onclick="qty(${i},1)">+</button></div></div>`).join('')||'<div class="empty">اضغط على صنف لإضافته</div>'}</div>
      ${canI('discount')?`<div class="row" style="margin-bottom:6px"><span class="muted">خصم %</span><input type="number" min="0" max="${st().maxDiscount}" value="${ui.discount}" style="width:80px" class="ltr" onchange="setDiscount(this.value)"><span class="muted" style="font-size:12px">الحد ${num(st().maxDiscount)}%</span></div>`:''}
      <div class="sum"><span>المجموع</span><span>${fmt(c.s)}</span></div>
      ${c.d?`<div class="sum" style="color:var(--green)"><span>الخصم</span><span>− ${fmt(c.d)}</span></div>`:''}
@@ -445,7 +445,7 @@ pos(){
      ${c.tx?`<div class="sum"><span>ضريبة ${num(st().tax)}%</span><span>${fmt(c.tx)}</span></div>`:''}
      ${c.fee?`<div class="sum"><span>أجور التوصيل</span><span>${fmt(c.fee)}</span></div>`:''}
      <div class="sum total"><span>الإجمالي</span><span>${fmt(ui.cart.length?c.t:0)}</span></div>
-     ${ui.type==='صالة'?`<button class="btn primary lg block" style="margin-top:12px" onclick="checkout(null)">📤 إرسال للمطبخ — الدفع لاحقاً</button>
+     ${ui.type==='صالة'?`<button class="btn primary lg block" style="margin-top:12px" onclick="checkout(null)"><i class="ic ic-send"></i> إرسال للمطبخ، الدفع لاحقاً</button>
        <div class="muted" style="font-size:12px;text-align:center;margin-top:8px">أو ادفع الآن:</div>`:''}
      <div class="pay">${payButtons('checkout')}</div>
      ${ui.cart.length?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="clearCart()">إلغاء الطلب</button>`:''}
@@ -453,17 +453,17 @@ pos(){
 },
 
 kds(){
-  const cols=[['new','🆕 جديد','b-blue'],['preparing','🔥 قيد التحضير','b-amber'],['ready','✅ جاهز للتسليم','b-green']];
+  const cols=[['new','<i class="ic ic-inbox"></i> جديد','b-blue'],['preparing','<i class="ic ic-flame"></i> قيد التحضير','b-amber'],['ready','<i class="ic ic-checkc"></i> جاهز للتسليم','b-green']];
   const next={new:['ابدأ التحضير','preparing'],preparing:['جاهز','ready'],ready:['تم التسليم','done']};
   return `<div class="card" style="margin-bottom:16px;padding:10px 16px"><div class="row" style="justify-content:space-between">
-    <span class="muted" style="font-size:13px">🖨️ طباعة تلقائية لتذكرة كل طلب جديد على <b>هذا الجهاز</b></span>
+    <span class="muted" style="font-size:13px"><i class="ic ic-print"></i> طباعة تلقائية لتذكرة كل طلب جديد على <b>هذا الجهاز</b></span>
     <button class="sw ${P.kdsPrint?'on':''}" onclick="P.kdsPrint=!P.kdsPrint;savePrefs();render()"></button></div></div>
   <div class="kds">${cols.map(([s,label,b])=>{const list=S.orders.filter(o=>o.status===s).sort((x,y)=>x.createdAt-y.createdAt);
    return `<div class="col"><h3>${label} <span class="badge ${b}">${num(list.length)}</span></h3>
    ${list.map(o=>{const m=mins(o.createdAt);return `<div class="ticket ${m>=st().lateMin?'late':m>=st().warnMin?'warn':''}">
-     <header><b>#${o.id} · ${o.type}</b><span class="row"><button class="nbtn" title="طباعة" onclick="printTicket(orderByUid('${o.uid}'))">🖨️</button><span class="timer" data-t="${o.createdAt}">${num(m)} د</span></span></header>
-     <div class="who">${o.table?'🪑 '+esc(tableName(o.table))+' · ':''}👤 ${esc(o.by||'—')}</div>
-     <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(lineName(l))}${l.note?`<small>⚠ ${esc(l.note)}</small>`:''}</li>`).join('')}</ul>
+     <header><b>#${o.id} · ${o.type}</b><span class="row"><button class="nbtn" title="طباعة" onclick="printTicket(orderByUid('${o.uid}'))"><i class="ic ic-print"></i></button><span class="timer" data-t="${o.createdAt}">${num(m)} د</span></span></header>
+     <div class="who">${o.table?'<i class="ic ic-table"></i> '+esc(tableName(o.table))+' · ':''}<i class="ic ic-user"></i> ${esc(o.by||'')}</div>
+     <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(lineName(l))}${l.note?`<small><i class="ic ic-alert"></i> ${esc(l.note)}</small>`:''}</li>`).join('')}</ul>
      <button class="btn ${s==='ready'?'':'primary'}" style="width:100%" onclick="advance('${o.uid}','${next[s][1]}')">${next[s][0]}</button></div>`}).join('')||'<div class="empty card">لا يوجد</div>'}</div>`}).join('')}</div>`;
 },
 
@@ -474,13 +474,13 @@ tables(){
   const floorCount=fl=>S.tables.filter(t=>fl.sections.some(s=>s.id===t.section));
   return `
   <div class="row" style="justify-content:space-between;align-items:flex-start">
-    <div class="pills" style="flex:1">${S.floors.map(x=>{const ts=floorCount(x);return `<button class="${x.id===ui.floor?'active':''}" onclick="ui.floor='${x.id}';render()">🏢 ${esc(x.name)} <span class="muted ltr">(${num(ts.filter(t=>t.status==='free').length)}/${num(ts.length)})</span></button>`}).join('')}
-      ${edit?`<button class="add" onclick="addFloor()">＋ طابق جديد</button>`:''}</div>
-    <div class="row"><button class="btn" onclick="openReservation()">📅 حجز جديد</button>
-    ${canI('tablesEdit')?`<button class="btn ${edit?'primary':''}" onclick="ui.editT=!ui.editT;render()">${edit?'✓ إنهاء التعديل':'✏️ تعديل المخطط'}</button>`:''}</div>
+    <div class="pills" style="flex:1">${S.floors.map(x=>{const ts=floorCount(x);return `<button class="${x.id===ui.floor?'active':''}" onclick="ui.floor='${x.id}';render()"><i class="ic ic-building"></i> ${esc(x.name)} <span class="muted ltr">(${num(ts.filter(t=>t.status==='free').length)}/${num(ts.length)})</span></button>`}).join('')}
+      ${edit?`<button class="add" onclick="addFloor()"><i class="ic ic-plus"></i> طابق جديد</button>`:''}</div>
+    <div class="row"><button class="btn" onclick="openReservation()"><i class="ic ic-calendar"></i> حجز جديد</button>
+    ${canI('tablesEdit')?`<button class="btn ${edit?'primary':''}" onclick="ui.editT=!ui.editT;render()">${edit?'<i class="ic ic-check"></i> إنهاء التعديل':'<i class="ic ic-edit"></i> تعديل المخطط'}</button>`:''}</div>
   </div>
   ${edit&&f?`<div class="card edit-bar"><span class="muted">اسم الطابق</span><input type="text" value="${esc(f.name)}" onchange="renameFloor('${f.id}',this.value)">
-     <button class="btn sm" onclick="addSection('${f.id}')">＋ قسم جديد</button>
+     <button class="btn sm" onclick="addSection('${f.id}')"><i class="ic ic-plus"></i> قسم جديد</button>
      <span class="spacer" style="flex:1"></span><button class="btn sm danger" onclick="delFloor('${f.id}')">حذف الطابق</button></div>`:
    `<div class="card" style="margin-bottom:16px;padding:12px 16px"><div class="legend">
     <span><i style="background:var(--green)"></i>فارغة</span><span><i style="background:var(--primary)"></i>مشغولة</span>
@@ -491,17 +491,17 @@ tables(){
       `<h3>${esc(s.name)}</h3><span class="badge b-green">${num(ts.filter(t=>t.status==='free').length)} فارغة</span><span class="muted ltr" style="font-size:13px">${num(ts.length)} طاولة</span>`}</div>
     <div class="floor">${ts.map(t=>{const o=openOrders(t.id), due=o.reduce((a,x)=>a+sub(x),0), since=o.length?Math.min(...o.map(x=>x.createdAt)):0;
       return edit?`<div class="tbl t-${t.status}"><button class="del" title="حذف" onclick="delTable(${t.id})">×</button><span class="muted" style="font-size:12px">طاولة</span><b>${t.id}</b>
-         <label class="muted" style="font-size:12px">👤 <select onchange="setSeats(${t.id},this.value)">${[2,4,6,8,10,12].map(n=>`<option ${t.seats===n?'selected':''}>${n}</option>`).join('')}</select></label></div>`
+         <label class="muted" style="font-size:12px"><i class="ic ic-user"></i> <select onchange="setSeats(${t.id},this.value)">${[2,4,6,8,10,12].map(n=>`<option ${t.seats===n?'selected':''}>${n}</option>`).join('')}</select></label></div>`
       :`<div class="tbl t-${t.status}"><span class="muted" style="font-size:12px">طاولة</span><b>${t.id}</b>
-       <div class="st">${lbl[t.status]}</div><div class="muted" style="font-size:12px;margin:2px 0">👤 ${num(t.seats)}${o.length?' · '+num(o.length)+' طلب · '+num(mins(since))+' د':''}</div>
+       <div class="st">${lbl[t.status]}</div><div class="muted" style="font-size:12px;margin:2px 0"><i class="ic ic-user"></i> ${num(t.seats)}${o.length?' · '+num(o.length)+' طلب · '+num(mins(since))+' د':''}</div>
        ${due?`<div class="due">${fmt(due)}</div>`:''}
        <div class="acts" style="margin-top:8px">${t.status==='free'?(canI('pos')?`<button class="btn sm" onclick="openTable(${t.id})">فتح طاولة</button>`:''):
          t.status==='res'?`<button class="btn sm" onclick="setTable(${t.id},'busy')">وصل الزبون</button><button class="btn sm ghost" onclick="setTable(${t.id},'free')">إلغاء</button>`:
-         `${o.length?`<button class="btn sm primary" onclick="openBill(${t.id})">🧾 الحساب</button>`:`<button class="btn sm" onclick="setTable(${t.id},'free')">تحرير</button>`}
-          ${canI('pos')?`<button class="btn sm" title="إضافة طلب" onclick="openTable(${t.id})">＋</button>`:''}
-          <button class="btn sm" title="نقل لطاولة أخرى" onclick="openMove(${t.id})">⇄</button>`}</div></div>`}).join('')}
-      ${edit?`<button class="tbl add" onclick="addTable('${s.id}')"><span><b style="font-size:28px">＋</b><br>طاولة</span></button>`:''}
-      ${!ts.length&&!edit?'<div class="empty">لا توجد طاولات — اضغط «تعديل المخطط» لإضافتها</div>':''}</div></div>`}).join('')
+         `${o.length?`<button class="btn sm primary" onclick="openBill(${t.id})"><i class="ic ic-receipt"></i> الحساب</button>`:`<button class="btn sm" onclick="setTable(${t.id},'free')">تحرير</button>`}
+          ${canI('pos')?`<button class="btn sm" title="إضافة طلب" onclick="openTable(${t.id})"><i class="ic ic-plus"></i></button>`:''}
+          <button class="btn sm" title="نقل لطاولة أخرى" onclick="openMove(${t.id})"><i class="ic ic-swap"></i></button>`}</div></div>`}).join('')}
+      ${edit?`<button class="tbl add" onclick="addTable('${s.id}')"><span><b style="font-size:28px"><i class="ic ic-plus"></i></b><br>طاولة</span></button>`:''}
+      ${!ts.length&&!edit?'<div class="empty">لا توجد طاولات، اضغط «تعديل المخطط» لإضافتها</div>':''}</div></div>`}).join('')
     :'<div class="empty card">لا توجد طوابق</div>'}
   ${reservationsCard()}`;
 },
@@ -510,7 +510,7 @@ orders(){
   const list=ordersIn(rangeOf(ui.range));
   const head=`<div class="toolbar">${rangeBar()}<span class="spacer"></span>
     <select onchange="ui.ostatus=this.value;render()">${[['all','كل الحالات'],['open','قيد التنفيذ'],['unpaid','غير مدفوعة'],['done','مكتملة'],['void','ملغية']].map(([k,t])=>`<option value="${k}" ${ui.ostatus===k?'selected':''}>${t}</option>`).join('')}</select>
-    <input type="search" placeholder="🔍 رقم الطلب أو الزبون" value="${esc(ui.oq)}" onchange="ui.oq=this.value;render()" style="width:180px"></div>`;
+    <input type="search" placeholder="رقم الطلب أو الزبون" value="${esc(ui.oq)}" onchange="ui.oq=this.value;render()" style="width:180px"></div>`;
   if(!list) return head+LOADING;
   const f={all:()=>true,open:o=>o.status!=='done'&&o.status!=='void',unpaid:o=>!o.pay&&o.status!=='void',done:o=>o.status==='done'&&o.pay,void:o=>o.status==='void'}[ui.ostatus];
   const q=ui.oq.trim();
@@ -518,39 +518,39 @@ orders(){
   const tot=rows.filter(o=>o.status!=='void').reduce((s,o)=>s+total(o),0);
   return head+`<div class="card table-wrap"><table><tr><th>#</th><th>الوقت</th><th>النوع</th><th>بواسطة</th><th>الأصناف</th><th>الدفع</th><th>الإجمالي</th><th>الحالة</th><th></th></tr>
   ${rows.slice(0,500).map(o=>`<tr style="${o.status==='void'?'opacity:.55':''}"><td><b>${o.id}</b></td><td>${ui.range==='today'?'':dateStr(o.createdAt)+' '}${timeStr(o.createdAt)}</td>
-   <td>${o.type}${o.table?' · ط'+o.table:''}${o.customer?.name?'<div class="muted" style="font-size:12px">'+esc(o.customer.name)+'</div>':''}</td><td class="muted">${esc(o.by||'—')}</td>
-   <td class="muted">${o.items.map(l=>esc(lineName(l))+' ×'+num(l.qty)).join('، ')}${o.voidReason?`<div style="color:var(--red);font-size:12px">سبب الإلغاء: ${esc(o.voidReason)} — ${esc(o.voidBy||'')}</div>`:''}</td>
-   <td>${o.pay||'—'}</td><td><b>${fmt(total(o))}</b></td><td>${statusBadge(o)}</td>
-   <td style="white-space:nowrap"><button class="nbtn" title="طباعة الفاتورة" onclick="printReceipt(findOrder('${o.uid}'))">🖨️</button>
-     ${!o.pay&&o.status!=='void'&&o.table&&S.orders.includes(o)?`<button class="nbtn" title="الحساب" onclick="openBill(${o.table})">🧾</button>`:''}
-     ${o.status!=='void'&&canI('void')&&S.orders.includes(o)?`<button class="nbtn" title="إلغاء الطلب" onclick="voidOrder('${o.uid}')">✕</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" class="empty">لا توجد طلبات</td></tr>'}</table>
+   <td>${o.type}${o.table?' · ط'+o.table:''}${o.customer?.name?'<div class="muted" style="font-size:12px">'+esc(o.customer.name)+'</div>':''}</td><td class="muted">${esc(o.by||'')}</td>
+   <td class="muted">${o.items.map(l=>esc(lineName(l))+' ×'+num(l.qty)).join('، ')}${o.voidReason?`<div style="color:var(--red);font-size:12px">سبب الإلغاء: ${esc(o.voidReason)}، ${esc(o.voidBy||'')}</div>`:''}</td>
+   <td>${o.pay||''}</td><td><b>${fmt(total(o))}</b></td><td>${statusBadge(o)}</td>
+   <td style="white-space:nowrap"><button class="nbtn" title="طباعة الفاتورة" onclick="printReceipt(findOrder('${o.uid}'))"><i class="ic ic-print"></i></button>
+     ${!o.pay&&o.status!=='void'&&o.table&&S.orders.includes(o)?`<button class="nbtn" title="الحساب" onclick="openBill(${o.table})"><i class="ic ic-receipt"></i></button>`:''}
+     ${o.status!=='void'&&canI('void')&&S.orders.includes(o)?`<button class="nbtn" title="إلغاء الطلب" onclick="voidOrder('${o.uid}')"><i class="ic ic-x"></i></button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" class="empty">لا توجد طلبات</td></tr>'}</table>
   <p class="muted" style="font-size:13px;margin:12px 0 0">${num(rows.length)} طلب · المجموع ${canI('sales')?fmt(tot):'•••'}${rows.length>500?' · يُعرض أحدث 500':''}</p></div>`;
 },
 
 menu(){
   const cost=canI('cost'), edit=canI('addItem'), price=canI('editPrice');
   const list=S.menu.filter(m=>(ui.cat==='الكل'||m.cat===ui.cat)&&(!ui.q||m.name.includes(ui.q)));
-  return `<div class="toolbar">${edit?`<button class="btn primary" onclick="openDish(null)">＋ صنف جديد</button>`:''}
-    <input type="search" class="search" placeholder="🔍 بحث…" value="${esc(ui.q)}" onchange="ui.q=this.value;render()">
-    <span class="spacer"></span>${edit?`<button class="btn ${ui.editCats?'primary':''}" onclick="ui.editCats=!ui.editCats;render()">${ui.editCats?'✓ تم':'🗂️ إدارة التصنيفات'}</button>`:''}</div>
+  return `<div class="toolbar">${edit?`<button class="btn primary" onclick="openDish(null)"><i class="ic ic-plus"></i> صنف جديد</button>`:''}
+    <input type="search" class="search" placeholder="بحث…" value="${esc(ui.q)}" onchange="ui.q=this.value;render()">
+    <span class="spacer"></span>${edit?`<button class="btn ${ui.editCats?'primary':''}" onclick="ui.editCats=!ui.editCats;render()">${ui.editCats?'<i class="ic ic-check"></i> تم':'<i class="ic ic-folder"></i> إدارة التصنيفات'}</button>`:''}</div>
   <div class="pills">${['الكل',...S.categories].map(x=>{const n=x==='الكل'?S.menu.length:S.menu.filter(m=>m.cat===x).length;
-    return ui.editCats&&x!=='الكل'?`<button onclick="editCategory(this.dataset.c)" data-c="${esc(x)}">✏️ ${esc(x)} <span class="muted">(${n})</span></button>`
+    return ui.editCats&&x!=='الكل'?`<button onclick="editCategory(this.dataset.c)" data-c="${esc(x)}"><i class="ic ic-edit"></i> ${esc(x)} <span class="muted">(${n})</span></button>`
     :`<button class="${ui.cat===x?'active':''}" onclick="ui.cat=this.dataset.c;render()" data-c="${esc(x)}">${esc(x)} <span class="muted">(${num(n)})</span></button>`}).join('')}
-    ${ui.editCats?`<button class="add" onclick="addCategory()">＋ تصنيف</button>`:''}</div>
+    ${ui.editCats?`<button class="add" onclick="addCategory()"><i class="ic ic-plus"></i> تصنيف</button>`:''}</div>
   <div class="card table-wrap"><table><tr><th></th><th>الصنف</th><th>التصنيف</th><th>السعر</th>${cost?'<th>التكلفة</th><th>نسبة التكلفة</th>':''}<th>متوفر</th>${edit?'<th></th>':''}</tr>
   ${list.map(m=>{const c=costOf(m),pct=c/m.price*100,src=imgSrc(m.img);return `<tr><td>${src?`<img class="thumb" src="${src}" alt="">`:`<span style="font-size:24px">${esc(m.emo)}</span>`}</td>
    <td><b>${esc(m.name)}</b>${m.desc?`<div class="muted" style="font-size:12px">${esc(m.desc)}</div>`:''}${!st().sellOutOfStock&&!canMake(m)?' <span class="badge b-red">المواد ناقصة</span>':''}</td><td><span class="badge b-gray">${esc(m.cat)}</span></td>
    <td>${price?`<input type="number" value="${m.price}" style="width:110px" class="ltr" onchange="setPrice(${m.id},this.value)">`:fmt(m.price)}</td>
-   ${cost?`<td class="muted">${c?fmt(c):'—'}</td><td>${c?`<span class="badge ${pct>35?'b-red':pct>28?'b-amber':'b-green'}">${num(pct)}%</span>`:'<span class="muted">لا توجد وصفة</span>'}</td>`:''}
+   ${cost?`<td class="muted">${c?fmt(c):''}</td><td>${c?`<span class="badge ${pct>35?'b-red':pct>28?'b-amber':'b-green'}">${num(pct)}%</span>`:'<span class="muted">لا توجد وصفة</span>'}</td>`:''}
    <td><button class="sw ${m.on?'on':''}" ${edit?`onclick="item(${m.id}).on=!item(${m.id}).on;save();render()"`:'disabled'}></button></td>
-   ${edit?`<td><button class="btn sm" onclick="openDish(${m.id})">تعديل</button></td>`:''}</tr>`}).join('')||`<tr><td colspan="8" class="empty">لا توجد أصناف${edit?' — اضغط «＋ صنف جديد»':''}</td></tr>`}</table>
-  ${cost?'<p class="muted" style="font-size:13px;margin:12px 0 0">💡 نسبة التكلفة المثالية للمطاعم بين 25% و 35%. التكلفة تُحسب تلقائياً من وصفة الصنف وأسعار المواد في المخزون.</p>':''}</div>`;
+   ${edit?`<td><button class="btn sm" onclick="openDish(${m.id})">تعديل</button></td>`:''}</tr>`}).join('')||`<tr><td colspan="8" class="empty">لا توجد أصناف${edit?'، اضغط «<i class="ic ic-plus"></i> صنف جديد»':''}</td></tr>`}</table>
+  ${cost?'<p class="muted" style="font-size:13px;margin:12px 0 0"><i class="ic ic-info"></i> نسبة التكلفة المثالية للمطاعم بين 25% و 35%. التكلفة تُحسب تلقائياً من وصفة الصنف وأسعار المواد في المخزون.</p>':''}</div>`;
 },
 
 inv(){
   const cost=canI('cost'), inn=canI('stockIn'), ed=canI('invEdit');
   const waste=S.waste.slice(0,15);
-  return `<div class="toolbar">${ed?`<button class="btn primary" onclick="openMaterial(null)">＋ مادة جديدة</button>`:''}<span class="spacer"></span>
+  return `<div class="toolbar">${ed?`<button class="btn primary" onclick="openMaterial(null)"><i class="ic ic-plus"></i> مادة جديدة</button>`:''}<span class="spacer"></span>
     ${cost?`<span class="muted">قيمة المخزون: <b>${fmt(S.inventory.reduce((s,i)=>s+i.qty*i.cost,0))}</b></span>`:''}</div>
   <div class="card table-wrap"><table><tr><th>المادة</th><th>الكمية</th><th>المستوى</th><th>الحد الأدنى</th>${cost?'<th>سعر الوحدة</th><th>القيمة</th>':''}<th>الحالة</th><th></th></tr>
   ${S.inventory.map(i=>{const lvl=Math.min(100,i.qty/((i.min||1)*2.5)*100),low=i.qty<=i.min,warn=i.qty<=i.min*1.5;
@@ -558,30 +558,30 @@ inv(){
    <td><div class="progress"><i style="width:${lvl}%;background:${low?'var(--red)':warn?'var(--amber)':'var(--green)'}"></i></div></td>
    <td class="muted">${dec(i.min)} ${esc(i.unit)}</td>${cost?`<td>${fmt(i.cost)}</td><td>${fmt(i.qty*i.cost)}</td>`:''}
    <td>${low?'<span class="badge b-red">ناقص</span>':warn?'<span class="badge b-amber">قارب النفاد</span>':'<span class="badge b-green">جيد</span>'}</td>
-   <td style="white-space:nowrap">${inn?`<button class="btn sm" onclick="openStock('${i.id}','in')">＋ استلام</button> <button class="btn sm" onclick="openStock('${i.id}','waste')">− هدر</button>`:''}
-     ${ed?` <button class="nbtn" title="تعديل" onclick="openMaterial('${i.id}')">✏️</button>`:''}</td></tr>`}).join('')||`<tr><td colspan="8" class="empty">لا توجد مواد${ed?' — أضف المواد الخام ثم اربطها بوصفات الأصناف':''}</td></tr>`}</table>
-  <p class="muted" style="font-size:13px;margin:12px 0 0">💡 ${st().autoDeduct?'يتم خصم المواد تلقائياً عند كل بيع حسب وصفة الصنف (وتُرجع عند إلغاء الطلب).':'الخصم التلقائي متوقف من الإعدادات.'}</p></div>
-  ${waste.length?`<div class="card table-wrap" style="margin-top:16px"><h3>🗑️ آخر الهدر والتالف</h3><table><tr><th>التاريخ</th><th>المادة</th><th>الكمية</th><th>السبب</th><th>بواسطة</th>${cost?'<th>الخسارة</th>':''}</tr>
+   <td style="white-space:nowrap">${inn?`<button class="btn sm" onclick="openStock('${i.id}','in')"><i class="ic ic-plus"></i> استلام</button> <button class="btn sm" onclick="openStock('${i.id}','waste')">− هدر</button>`:''}
+     ${ed?` <button class="nbtn" title="تعديل" onclick="openMaterial('${i.id}')"><i class="ic ic-edit"></i></button>`:''}</td></tr>`}).join('')||`<tr><td colspan="8" class="empty">لا توجد مواد${ed?'، أضف المواد الخام ثم اربطها بوصفات الأصناف':''}</td></tr>`}</table>
+  <p class="muted" style="font-size:13px;margin:12px 0 0"><i class="ic ic-info"></i> ${st().autoDeduct?'يتم خصم المواد تلقائياً عند كل بيع حسب وصفة الصنف (وتُرجع عند إلغاء الطلب).':'الخصم التلقائي متوقف من الإعدادات.'}</p></div>
+  ${waste.length?`<div class="card table-wrap" style="margin-top:16px"><h3><i class="ic ic-trash"></i> آخر الهدر والتالف</h3><table><tr><th>التاريخ</th><th>المادة</th><th>الكمية</th><th>السبب</th><th>بواسطة</th>${cost?'<th>الخسارة</th>':''}</tr>
    ${waste.map(w=>`<tr><td>${dateStr(w.at)} ${timeStr(w.at)}</td><td>${esc(w.name)}</td><td>${dec(w.qty)} ${esc(w.unit||'')}</td><td>${esc(w.reason)}</td><td class="muted">${esc(w.by)}</td>${cost?`<td>${fmt(w.cost)}</td>`:''}</tr>`).join('')}</table></div>`:''}`;
 },
 
 cust(){
   const q=ui.cq.trim();
   const list=S.customers.filter(c=>!q||c.name.includes(q)||c.phone.includes(q)).sort((a,b)=>(b.spent||0)-(a.spent||0));
-  return `<div class="toolbar"><button class="btn primary" onclick="openCustomer(null)">＋ زبون جديد</button>
-    <input type="search" class="search" placeholder="🔍 الاسم أو الهاتف" value="${esc(ui.cq)}" onchange="ui.cq=this.value;render()"></div>
+  return `<div class="toolbar"><button class="btn primary" onclick="openCustomer(null)"><i class="ic ic-plus"></i> زبون جديد</button>
+    <input type="search" class="search" placeholder="الاسم أو الهاتف" value="${esc(ui.cq)}" onchange="ui.cq=this.value;render()"></div>
   <div class="card table-wrap"><table><tr><th>الزبون</th><th>الهاتف</th><th>العنوان</th><th>الطلبات</th><th>إجمالي الإنفاق</th><th>نقاط الولاء</th><th></th></tr>
   ${list.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.note?`<div class="muted" style="font-size:12px">${esc(c.note)}</div>`:''}</td><td class="ltr" style="text-align:end">${esc(c.phone)}</td><td class="muted">${esc(c.address||'')}</td><td>${num(c.orders)}</td>
-   <td>${canI('sales')?fmt(c.spent):H}</td><td><span class="badge b-amber">⭐ ${num(c.points)}</span></td>
-   <td><button class="nbtn" onclick="openCustomer('${c.id}')">✏️</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">لا يوجد زبائن — يُضاف الزبون تلقائياً عند إدخال هاتفه في الطلب</td></tr>'}</table>
-  <p class="muted" style="font-size:13px;margin:12px 0 0">💡 نقطة ولاء لكل ${fmt(st().pointsPer)} يدفعها الزبون.</p></div>`;
+   <td>${canI('sales')?fmt(c.spent):H}</td><td><span class="badge b-amber"><i class="ic ic-star"></i> ${num(c.points)}</span></td>
+   <td><button class="nbtn" onclick="openCustomer('${c.id}')"><i class="ic ic-edit"></i></button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">لا يوجد زبائن، يُضاف الزبون تلقائياً عند إدخال هاتفه في الطلب</td></tr>'}</table>
+  <p class="muted" style="font-size:13px;margin:12px 0 0"><i class="ic ic-info"></i> نقطة ولاء لكل ${fmt(st().pointsPer)} يدفعها الزبون.</p></div>`;
 },
 
 cash(){
   const z=shiftData(), see=canI('sales');
   const hist=S.shifts.slice(0,20);
   return `<div class="grid two">
-    <div class="card"><h3>💰 الوردية الحالية <span class="muted" style="font-size:13px;font-weight:600">— منذ ${dateStr(z.start)} ${timeStr(z.start)}</span></h3>
+    <div class="card"><h3><i class="ic ic-wallet"></i> الوردية الحالية <span class="muted" style="font-size:13px;font-weight:600"> منذ ${dateStr(z.start)} ${timeStr(z.start)}</span></h3>
       <table><tr><th>البند</th><th>المبلغ</th></tr>
         <tr><td>النقد الافتتاحي في الدرج</td><td>${fmt(z.opening)}</td></tr>
         ${Object.entries(z.byPay).map(([k,v])=>`<tr><td>مبيعات ${esc(k)}</td><td>${see?fmt(v):H}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">لا مبيعات مدفوعة بعد</td></tr>'}
@@ -592,13 +592,13 @@ cash(){
         ${z.unpaid?`<tr><td style="color:var(--amber)">طاولات لم تُدفع بعد</td><td style="color:var(--amber)">${num(z.unpaid)}</td></tr>`:''}
       </table>
       <div class="row" style="margin-top:16px"><span>النقد الموجود فعلياً:</span><input type="number" id="counted" class="ltr" style="width:150px" placeholder="0" oninput="$('#cdiff').innerHTML=diffHtml(+this.value)"><span id="cdiff"></span></div>
-      <div class="row" style="margin-top:14px"><button class="btn primary" onclick="closeShift()">🔒 إغلاق الوردية وطباعة تقرير Z</button><button class="btn" onclick="printHtml(zReportHtml(shiftData()))">🖨️ تقرير X (بدون إغلاق)</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn primary" onclick="closeShift()"><i class="ic ic-lock"></i> إغلاق الوردية وطباعة تقرير Z</button><button class="btn" onclick="printHtml(zReportHtml(shiftData()))"><i class="ic ic-print"></i> تقرير X (بدون إغلاق)</button></div>
     </div>
-    <div class="card"><h3>📜 الورديات السابقة</h3>
+    <div class="card"><h3><i class="ic ic-history"></i> الورديات السابقة</h3>
       ${hist.map((h,i)=>`<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)">
         <span><b>${dateStr(h.end)}</b> <span class="muted" style="font-size:12px">${timeStr(h.start)}–${timeStr(h.end)} · ${esc(h.by)}</span><br>
         <span style="font-size:13px">${see?fmt(h.total):H} ${h.counted!=null?`· فرق <b style="color:${h.diff<0?'var(--red)':'var(--green)'}">${num(h.diff)}</b>`:''}</span></span>
-        <button class="nbtn" onclick="printHtml(zReportHtml(S.shifts[${i}]))">🖨️</button></div>`).join('')||'<div class="empty">لا توجد ورديات مغلقة بعد</div>'}</div></div>`;
+        <button class="nbtn" onclick="printHtml(zReportHtml(S.shifts[${i}]))"><i class="ic ic-print"></i></button></div>`).join('')||'<div class="empty">لا توجد ورديات مغلقة بعد</div>'}</div></div>`;
 },
 
 expenses(){
@@ -606,30 +606,30 @@ expenses(){
   const list=S.expenses.filter(e=>e.at>=m&&e.at<m2).sort((a,b)=>b.at-a.at), tot=list.reduce((s,e)=>s+e.amount,0);
   const byCat={}; list.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amount);
   const mx=Math.max(...Object.values(byCat),1);
-  return `<div class="toolbar"><button class="btn primary" onclick="openExpense()">＋ مصروف جديد</button><span class="spacer"></span>
+  return `<div class="toolbar"><button class="btn primary" onclick="openExpense()"><i class="ic ic-plus"></i> مصروف جديد</button><span class="spacer"></span>
     <button class="btn icon-btn" onclick="ui.exMonth++;render()">→</button><b>${m.toLocaleDateString('ar-IQ-u-nu-latn',{month:'long',year:'numeric'})}</b>
     <button class="btn icon-btn" ${ui.exMonth?'':'disabled'} onclick="ui.exMonth--;render()">←</button></div>
   <div class="grid two">
     <div class="card table-wrap"><table><tr><th>التاريخ</th><th>البند</th><th>المبلغ</th><th>ملاحظة</th><th>بواسطة</th><th></th></tr>
-     ${list.map(e=>`<tr><td>${dateStr(e.at)}</td><td><span class="badge b-gray">${esc(e.cat)}</span>${e.drawer?' <span class="badge b-amber" title="دُفع من درج الكاشير">💵 الدرج</span>':''}</td><td><b>${fmt(e.amount)}</b></td><td class="muted">${esc(e.note||'')}</td><td class="muted">${esc(e.by||'')}</td>
-       <td>${isMgr()?`<button class="nbtn" onclick="delExpense('${e.id}')">🗑️</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">لا توجد مصاريف لهذا الشهر</td></tr>'}</table></div>
-    <div class="card"><h3>المجموع: ${fmt(tot)}</h3>${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="hbar"><span class="name">${esc(k)}</span><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div><span class="num">${fmt(v)}</span></div>`).join('')||'<div class="empty">—</div>'}</div>
+     ${list.map(e=>`<tr><td>${dateStr(e.at)}</td><td><span class="badge b-gray">${esc(e.cat)}</span>${e.drawer?' <span class="badge b-amber" title="دُفع من درج الكاشير"><i class="ic ic-banknote"></i> الدرج</span>':''}</td><td><b>${fmt(e.amount)}</b></td><td class="muted">${esc(e.note||'')}</td><td class="muted">${esc(e.by||'')}</td>
+       <td>${isMgr()?`<button class="nbtn" onclick="delExpense('${e.id}')"><i class="ic ic-trash"></i></button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">لا توجد مصاريف لهذا الشهر</td></tr>'}</table></div>
+    <div class="card"><h3>المجموع: ${fmt(tot)}</h3>${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="hbar"><span class="name">${esc(k)}</span><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div><span class="num">${fmt(v)}</span></div>`).join('')||'<div class="empty"></div>'}</div>
   </div>`;
 },
 
 reports(){
   const [from,to]=rangeOf(ui.range), all=ordersIn([from,to]);
-  const head=`<div class="toolbar">${rangeBar()}<span class="spacer"></span>${all?`<button class="btn" onclick="exportReport()">⬇ تصدير Excel (CSV)</button>`:''}</div>`;
+  const head=`<div class="toolbar">${rangeBar()}<span class="spacer"></span>${all?`<button class="btn" onclick="exportReport()"><i class="ic ic-download"></i> تصدير Excel (CSV)</button>`:''}</div>`;
   if(!all) return head+LOADING;
   const R=report(all,from,to), see=canI('sales'), cost=canI('cost');
-  const block=(title,rows,money=true)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return `<div class="card"><h3>${title}</h3>${rows.map(([k,v])=>`<div class="hbar"><span class="name">${esc(k)}</span><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div><span class="num">${money?(see?fmt(v):'•••'):num(v)}</span></div>`).join('')||'<div class="empty">—</div>'}</div>`};
+  const block=(title,rows,money=true)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return `<div class="card"><h3>${title}</h3>${rows.map(([k,v])=>`<div class="hbar"><span class="name">${esc(k)}</span><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div><span class="num">${money?(see?fmt(v):'•••'):num(v)}</span></div>`).join('')||'<div class="empty"></div>'}</div>`};
   const k=(l,v,c='',i='')=>`<div class="card kpi">${i?`<div class="kpi-ico">${i}</div>`:''}<div class="label">${l}</div><div class="val" style="${c}">${v}</div></div>`;
   return head+`<div class="grid kpis">
-    ${k('صافي المبيعات',see?fmt(R.sales):'•••','','💰')}${k('عدد الطلبات',num(R.count),'','🧾')}${k('متوسط الفاتورة',see?fmt(R.avg):'•••','','📊')}${k('الخصومات',see?fmt(R.disc):'•••','','🏷️')}
-    ${k('تكلفة المواد',cost?fmt(R.mat):'•••','','🥩')}${k('مجمل الربح',see&&cost?fmt(R.sales-R.mat):'•••','color:var(--green)','📈')}
-    ${k('المصاريف + الهدر',cost?fmt(R.exp+R.waste):'•••','','💸')}${k('صافي الربح',see&&cost?fmt(R.net):'•••',`color:${R.net<0?'var(--red)':'var(--green)'}`,'🏦')}
+    ${k('صافي المبيعات',see?fmt(R.sales):'•••','','<i class="ic ic-wallet"></i>')}${k('عدد الطلبات',num(R.count),'','<i class="ic ic-receipt"></i>')}${k('متوسط الفاتورة',see?fmt(R.avg):'•••','','<i class="ic ic-chart"></i>')}${k('الخصومات',see?fmt(R.disc):'•••','','<i class="ic ic-tag"></i>')}
+    ${k('تكلفة المواد',cost?fmt(R.mat):'•••','','box')}${k('مجمل الربح',see&&cost?fmt(R.sales-R.mat):'•••','color:var(--green)','<i class="ic ic-trending"></i>')}
+    ${k('المصاريف + الهدر',cost?fmt(R.exp+R.waste):'•••','','<i class="ic ic-banknote"></i>')}${k('صافي الربح',see&&cost?fmt(R.net):'•••',`color:${R.net<0?'var(--red)':'var(--green)'}`,'<i class="ic ic-coins"></i>')}
   </div>
-  <p class="muted" style="font-size:13px">${R.voids?`ملغية: ${num(R.voids)} طلب بقيمة ${see?fmt(R.voidAmt):'•••'} — غير محسوبة في المبيعات. `:''}${cost&&R.sales?'نسبة تكلفة الطعام: '+(R.mat/R.sales*100).toFixed(1)+'%':''}</p>
+  <p class="muted" style="font-size:13px">${R.voids?`ملغية: ${num(R.voids)} طلب بقيمة ${see?fmt(R.voidAmt):'•••'}، غير محسوبة في المبيعات. `:''}${cost&&R.sales?'نسبة تكلفة الطعام: '+(R.mat/R.sales*100).toFixed(1)+'%':''}</p>
   <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(290px,1fr));margin-top:16px">
     ${block('حسب طريقة الدفع',R.byPay)}${block('حسب نوع الطلب',R.byType)}${block('حسب التصنيف',R.byCat)}
     ${block('حسب الموظف',R.byStaff)}${block('الأصناف الأكثر مبيعاً (كمية)',R.top.slice(0,10).map(t=>[t.name,t.qty]),false)}
@@ -641,25 +641,25 @@ reports(){
 staff(){
   const mgr=isMgr(), rb={مدير:'b-red',كاشير:'b-blue',ويتر:'b-green',طباخ:'b-amber',سائق:'b-gray'};
   const cloud=MODE==='cloud';
-  return `${mgr?`<div class="toolbar"><button class="btn primary" onclick="openStaff(null)">＋ موظف جديد</button>
+  return `${mgr?`<div class="toolbar"><button class="btn primary" onclick="openStaff(null)"><i class="ic ic-plus"></i> موظف جديد</button>
     <span class="muted" style="font-size:13px">${cloud?'كل موظف يدخل باسم مستخدم وكلمة مرور خاصة به.':'في وضع الخادم المحلي يختار الموظف اسمه بدون كلمة مرور.'}</span></div>`:''}
   <div class="card table-wrap"><table><tr><th>الاسم</th>${cloud?'<th>اسم المستخدم</th>':''}<th>الدور</th><th>الوردية</th><th>الحالة</th>${cloud?'<th>آخر دخول</th>':''}<th>يرى</th>${mgr?'<th></th>':''}</tr>
   ${S.staff.map(p=>`<tr><td><b>${esc(p.name)}</b>${p.id===ME().id?' <span class="badge b-blue">أنت</span>':''}</td>${cloud?`<td class="ltr" style="text-align:end">${esc(p.username)}</td>`:''}
    <td><span class="badge ${rb[p.role]}">${p.role}</span></td><td>${esc(p.shift||'')}</td>
    <td>${p.on?'<span class="badge b-green">فعّال</span>':'<span class="badge b-gray">موقوف</span>'}</td>
    ${cloud?`<td class="muted" style="font-size:13px">${p.last_login?dateStr(p.last_login)+' '+timeStr(p.last_login):'لم يدخل بعد'}</td>`:''}
-   <td class="muted" style="font-size:12px">${PERM_ROWS.filter(r=>r.k&&can(p.role,r.k)&&PAGES.some(x=>x.id===r.k)).map(r=>r.t).join('، ')||'—'}</td>
+   <td class="muted" style="font-size:12px">${PERM_ROWS.filter(r=>r.k&&can(p.role,r.k)&&PAGES.some(x=>x.id===r.k)).map(r=>r.t).join('، ')||''}</td>
    ${mgr?`<td style="white-space:nowrap"><button class="btn sm" onclick="openStaff('${p.id}')">تعديل</button></td>`:''}</tr>`).join('')||'<tr><td colspan="8" class="empty">لا يوجد موظفون</td></tr>'}</table>
-  ${mgr?`<p class="muted" style="font-size:13px;margin:12px 0 0">💡 حدد ما يظهر لكل دور من <a href="#" onclick="ui.set='perms';go('settings');return false" style="color:var(--primary)">الإعدادات ← الصلاحيات</a>.</p>`:''}</div>`;
+  ${mgr?`<p class="muted" style="font-size:13px;margin:12px 0 0"><i class="ic ic-info"></i> حدد ما يظهر لكل دور من <a href="#" onclick="ui.set='perms';go('settings');return false" style="color:var(--primary)">الإعدادات ← الصلاحيات</a>.</p>`:''}</div>`;
 },
 
 log(){
   if(MODE==='cloud'){
-    if(!logCache){logCache='loading';rpc('rms_log_list',{p_token:TOKEN(),p_limit:300}).then(a=>{logCache=a;render()}).catch(e=>{logCache=[];toast('⚠ '+errText(e))})}
+    if(!logCache){logCache='loading';rpc('rms_log_list',{p_token:TOKEN(),p_limit:300}).then(a=>{logCache=a;render()}).catch(e=>{logCache=[];toast('<i class="ic ic-alert"></i> '+errText(e))})}
     if(logCache==='loading') return LOADING;
   }
   const list=MODE==='cloud'?logCache:S.log;
-  return `<div class="toolbar"><button class="btn" onclick="logCache=null;render()">↻ تحديث</button></div>
+  return `<div class="toolbar"><button class="btn" onclick="logCache=null;render()"><i class="ic ic-refresh"></i> تحديث</button></div>
   <div class="card table-wrap"><table><tr><th>الوقت</th><th>الموظف</th><th>العملية</th><th>التفاصيل</th></tr>
   ${list.map(l=>`<tr><td style="white-space:nowrap">${dateStr(l.at)} ${timeStr(l.at)}</td><td>${esc(l.user)}</td><td><b>${esc(l.action)}</b></td><td class="muted">${esc(l.details)}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">لا توجد عمليات مسجلة</td></tr>'}</table></div>`;
 },
@@ -685,18 +685,19 @@ const fToggle=(title,hint,key)=>`<div class="set-toggle"><span><strong>${title}<
 const fToggleIn=(title,hint,obj,key)=>`<div class="set-toggle"><span><strong>${title}</strong>${hint?`<span class="hint">${hint}</span>`:''}</span><button class="sw ${st()[obj][key]?'on':''}" onclick="toggleIn('${obj}','${key}')"></button></div>`;
 
 const THEMES=[
+  {id:'ember',t:'الداكن الدافئ',d:'الافتراضي، هادئ ومريح للعين',bg:'#121212',side:'#1b1b1d',card:'#232326',acc:'#e8772e',edge:'#2c2c30'},
   {id:'light',t:'الفاتح',d:'أبيض نظيف لإضاءة النهار',bg:'#f6f6f7',side:'#fff',card:'#fff',acc:'#0c8a63',edge:'#e7e8eb'},
   {id:'dark',t:'الداكن',d:'مريح للعين في الليل',bg:'#0b0c0e',side:'#131518',card:'#1a1d21',acc:'#3ccf98',edge:'#23262b'},
-  {id:'glass',t:'زجاج',d:'بأسلوب iOS — طبقات زجاج لامعة',bg:'radial-gradient(70% 60% at 90% 0%,#55555a,transparent 70%),#161618',side:'rgba(255,255,255,.1)',card:'rgba(255,255,255,.13)',acc:'#0a84ff',edge:'rgba(255,255,255,.2)'},
-  {id:'aurora',t:'زجاجي ملوّن',d:'إضاءة فيروزية وبنفسجية (الافتراضي)',bg:'radial-gradient(60% 70% at 90% 0%,rgba(14,165,233,.65),transparent 70%),radial-gradient(60% 70% at 0% 100%,rgba(168,85,247,.65),transparent 70%),#070912',side:'rgba(255,255,255,.08)',card:'rgba(255,255,255,.1)',acc:'linear-gradient(90deg,#06b6d4,#8b5cf6)',edge:'rgba(255,255,255,.16)'},
+  {id:'glass',t:'زجاج',d:'بأسلوب iOS، طبقات زجاج لامعة',bg:'radial-gradient(70% 60% at 90% 0%,#55555a,transparent 70%),#161618',side:'rgba(255,255,255,.1)',card:'rgba(255,255,255,.13)',acc:'#0a84ff',edge:'rgba(255,255,255,.2)'},
+  {id:'aurora',t:'زجاجي ملوّن',d:'إضاءة فيروزية وبنفسجية',bg:'radial-gradient(60% 70% at 90% 0%,rgba(14,165,233,.65),transparent 70%),radial-gradient(60% 70% at 0% 100%,rgba(168,85,247,.65),transparent 70%),#121212',side:'rgba(255,255,255,.08)',card:'rgba(255,255,255,.1)',acc:'linear-gradient(90deg,#06b6d4,#8b5cf6)',edge:'rgba(255,255,255,.16)'},
 ];
 
 const SETTINGS=[
   {label:'المطعم'},
-  {id:'info',ico:'🏪',t:'بيانات المطعم',d:'تظهر في القائمة الجانبية والفاتورة المطبوعة.',mgr:true,body:()=>`
+  {id:'info',ico:'<i class="ic ic-store"></i>',t:'بيانات المطعم',d:'تظهر في القائمة الجانبية والفاتورة المطبوعة.',mgr:true,body:()=>`
     <div class="row" style="margin-bottom:16px;gap:14px"><div class="logo-pv">${logoHtml()}</div>
       <div><strong>شعار المطعم</strong><span class="hint">صورة مربعة تظهر في القائمة والفاتورة</span>
-      <div class="row" style="margin-top:6px"><label class="btn sm" for="logoIn" style="cursor:pointer">📷 اختيار صورة</label>${st().logoImg?`<button class="btn sm" onclick="setS('logoImg',null)">إزالة</button>`:''}</div></div></div>
+      <div class="row" style="margin-top:6px"><label class="btn sm" for="logoIn" style="cursor:pointer"><i class="ic ic-camera"></i> اختيار صورة</label>${st().logoImg?`<button class="btn sm" onclick="setS('logoImg',null)">إزالة</button>`:''}</div></div></div>
     <input type="file" id="logoIn" accept="image/*" hidden onchange="pickLogo(this)">
     <div class="form">
     ${fInput('اسم المطعم','name')}${fInput('اسم الفرع','branch')}
@@ -706,12 +707,12 @@ const SETTINGS=[
     ${fInput('سعر صرف الدولار (دينار لكل 1$)','usdRate','number','min="0"')}
     ${fInput('نقطة ولاء لكل (مبلغ)','pointsPer','number','min="1" step="250"')}
   </div>`},
-  {id:'perms',ico:'🔐',t:'الصلاحيات',d:'فعّل أو أخفِ الصفحات والخانات لكل دور. المدير يرى كل شيء دائماً.',mgr:true,body:()=>`
+  {id:'perms',ico:'<i class="ic ic-lock"></i>',t:'الصلاحيات',d:'فعّل أو أخفِ الصفحات والخانات لكل دور. المدير يرى كل شيء دائماً.',mgr:true,body:()=>`
     <div class="table-wrap"><table class="perm"><tr><th>الخانة</th>${ROLES.map(r=>`<th>${r}</th>`).join('')}</tr>
     ${PERM_ROWS.map(r=>r.group?`<tr class="grp"><td colspan="${ROLES.length+1}">${r.group}</td></tr>`:
       `<tr><td><strong>${r.t}</strong>${r.h?`<span class="hint">${r.h}</span>`:''}</td>${ROLES.map(role=>`<td><button class="sw ${can(role,r.k)?'on':''}" ${role==='مدير'?'disabled title="المدير يرى كل شيء"':`onclick="togglePerm('${role}','${r.k}')"`}></button></td>`).join('')}</tr>`).join('')}
     </table></div>`},
-  {id:'orders',ico:'🧾',t:'الطلبات والدفع',d:'أنواع الطلبات المتاحة، الرسوم، الخصومات وطرق الدفع.',mgr:true,body:()=>`
+  {id:'orders',ico:'<i class="ic ic-receipt"></i>',t:'الطلبات والدفع',d:'أنواع الطلبات المتاحة، الرسوم، الخصومات وطرق الدفع.',mgr:true,body:()=>`
     <div class="sub-title" style="margin-top:0">أنواع الطلبات</div>
     ${fToggleIn('صالة','طلبات داخل المطعم على الطاولات','types','صالة')}
     ${fToggleIn('سفري','استلام من الكاونتر','types','سفري')}
@@ -725,9 +726,9 @@ const SETTINGS=[
     </div>
     ${fToggle('اختيار الطاولة إجباري','لا يمكن إرسال طلب صالة بدون تحديد الطاولة','requireTable')}
     <div class="sub-title">طرق الدفع</div>
-    ${fToggleIn('💵 نقدي','','pays','نقدي')}${fToggleIn('💳 بطاقة','ماستر كارد / كي كارد','pays','بطاقة')}
-    ${fToggleIn('📱 محفظة إلكترونية','زين كاش، آسيا حوالة، FastPay','pays','محفظة')}${fToggleIn('📒 آجل (دين)','يُسجَّل على حساب الزبون','pays','آجل')}`},
-  {id:'invoice',ico:'🖨️',t:'الفاتورة والطباعة',d:'شكل فاتورة الزبون والطباعة. المعاينة تتحدث مباشرة.',mgr:true,body:()=>`<div class="set-split"><div>
+    ${fToggleIn('<i class="ic ic-banknote"></i> نقدي','','pays','نقدي')}${fToggleIn('<i class="ic ic-card"></i> بطاقة','ماستر كارد / كي كارد','pays','بطاقة')}
+    ${fToggleIn('<i class="ic ic-phone"></i> محفظة إلكترونية','زين كاش، آسيا حوالة، FastPay','pays','محفظة')}${fToggleIn('<i class="ic ic-book"></i> آجل (دين)','يُسجَّل على حساب الزبون','pays','آجل')}`},
+  {id:'invoice',ico:'<i class="ic ic-print"></i>',t:'الفاتورة والطباعة',d:'شكل فاتورة الزبون والطباعة. المعاينة تتحدث مباشرة.',mgr:true,body:()=>`<div class="set-split"><div>
     <div class="form">
       <label class="full">ترويسة الفاتورة<input type="text" value="${esc(st().receiptHeader)}" onchange="setS('receiptHeader',this.value)"></label>
       <label class="full">تذييل الفاتورة<input type="text" value="${esc(st().receiptFooter)}" onchange="setS('receiptFooter',this.value)"></label>
@@ -738,16 +739,16 @@ const SETTINGS=[
       ${fToggle('طباعة تذكرة المطبخ من نقطة البيع','تُطبع تذكرة لكل طلب يُرسل من الكاشير','kitchenTicket')}
       ${fToggle('إظهار الشعار في الفاتورة','','showLogo')}
     </div>
-    <button class="btn sm" style="margin-top:12px" onclick="printReceipt(demoOrder())">🖨️ طباعة تجريبية</button>
-    <p class="muted" style="font-size:12.5px">💡 للطابعة الحرارية: اختر الطابعة في نافذة الطباعة واضبط الهوامش على «بدون». في Chrome يمكن تفعيل الطباعة المباشرة بدون نافذة بتشغيله مع الخيار <span class="ltr">--kiosk-printing</span>.</p></div>
+    <button class="btn sm" style="margin-top:12px" onclick="printReceipt(demoOrder())"><i class="ic ic-print"></i> طباعة تجريبية</button>
+    <p class="muted" style="font-size:12.5px"><i class="ic ic-info"></i> للطابعة الحرارية: اختر الطابعة في نافذة الطباعة واضبط الهوامش على «بدون». في Chrome يمكن تفعيل الطباعة المباشرة بدون نافذة بتشغيله مع الخيار <span class="ltr">--kiosk-printing</span>.</p></div>
     <div><div class="receipt" style="width:${st().receiptWidth==='58'?210:290}px">${receiptHtml(demoOrder())}</div></div></div>`},
-  {id:'kitchen',ico:'👨‍🍳',t:'المطبخ',d:'سلوك شاشة المطبخ.',mgr:true,body:()=>`<div class="form">
+  {id:'kitchen',ico:'<i class="ic ic-chef"></i>',t:'المطبخ',d:'سلوك شاشة المطبخ.',mgr:true,body:()=>`<div class="form">
       ${fInput('تنبيه أصفر بعد (دقيقة)','warnMin','number','min="1"')}
       ${fInput('تأخير أحمر بعد (دقيقة)','lateMin','number','min="1"')}
     </div><div style="margin-top:8px">
     ${fToggle('تنبيه صوتي للطلب الجديد','يُسمع في شاشة المطبخ عند وصول طلب من الكاشير أو الويتر','kdsSound')}
-    </div><button class="btn sm" style="margin-top:12px" onclick="beep()">🔔 تجربة الصوت</button>`},
-  {id:'delivery',ico:'🛵',t:'التوصيل',d:'مناطق التوصيل وأجورها.',mgr:true,body:()=>`<div class="form">
+    </div><button class="btn sm" style="margin-top:12px" onclick="beep()"><i class="ic ic-bell"></i> تجربة الصوت</button>`},
+  {id:'delivery',ico:'<i class="ic ic-truck"></i>',t:'التوصيل',d:'مناطق التوصيل وأجورها.',mgr:true,body:()=>`<div class="form">
       ${fInput('أجور التوصيل الافتراضية','deliveryFee','number','min="0" step="250"')}
       ${fInput('أقل مبلغ لطلب التوصيل','minDelivery','number','min="0" step="1000"')}
     </div>
@@ -755,15 +756,15 @@ const SETTINGS=[
     ${st().zones.map((z,i)=>`<div class="zone-row"><input type="text" value="${esc(z.name)}" onchange="S.settings.zones[${i}].name=this.value;save()">
       <input type="number" value="${z.fee}" step="250" class="ltr" onchange="S.settings.zones[${i}].fee=+this.value;save()">
       <button class="btn sm danger" onclick="S.settings.zones.splice(${i},1);save();render()">حذف</button></div>`).join('')}
-    <button class="btn sm" onclick="S.settings.zones.push({name:'منطقة جديدة',fee:S.settings.deliveryFee});save();render()">＋ إضافة منطقة</button>`},
-  {id:'stock',ico:'📦',t:'المخزون',d:'ربط المبيعات بالمخزون.',mgr:true,body:()=>`
+    <button class="btn sm" onclick="S.settings.zones.push({name:'منطقة جديدة',fee:S.settings.deliveryFee});save();render()"><i class="ic ic-plus"></i> إضافة منطقة</button>`},
+  {id:'stock',ico:'<i class="ic ic-box"></i>',t:'المخزون',d:'ربط المبيعات بالمخزون.',mgr:true,body:()=>`
     ${fToggle('خصم المواد تلقائياً عند البيع','حسب وصفة كل صنف','autoDeduct')}
     ${fToggle('السماح بالبيع عند نفاد المواد','إذا أوقفته، يظهر الصنف «نفذ» تلقائياً عندما لا تكفي مواده','sellOutOfStock')}
     ${fToggle('تنبيهات النقص','في لوحة التحكم والقائمة الجانبية','lowAlert')}`},
-  {id:'cashset',ico:'💰',t:'الصندوق',d:'إعدادات درج الكاشير والوردية.',mgr:true,body:()=>`<div class="form">${fInput('النقد الافتتاحي في الدرج','openingCash','number','min="0" step="1000"')}</div>
+  {id:'cashset',ico:'<i class="ic ic-wallet"></i>',t:'الصندوق',d:'إعدادات درج الكاشير والوردية.',mgr:true,body:()=>`<div class="form">${fInput('النقد الافتتاحي في الدرج','openingCash','number','min="0" step="1000"')}</div>
     ${fToggle('عدّ النقد إجباري عند إغلاق الوردية','لا تُغلق الوردية بدون إدخال النقد الموجود فعلياً','closeShift')}`},
   {label:'حسابي وهذا الجهاز'},
-  {id:'account',ico:'🔑',t:'حسابي',d:'بيانات دخولك واشتراك المطعم.',cloud:true,body:()=>{
+  {id:'account',ico:'<i class="ic ic-key"></i>',t:'حسابي',d:'بيانات دخولك واشتراك المطعم.',cloud:true,body:()=>{
     const u=SESSION.user, exp=new Date(u.restaurant?.expires_at), days=Math.ceil((exp-Date.now())/864e5);
     return `<div class="set-toggle"><span><strong>${esc(u.name)}</strong><span class="hint">اسم المستخدم: <span class="ltr">${esc(u.username)}</span> · الدور: ${u.role}</span></span></div>
     <div class="set-toggle"><span><strong>المطعم: ${esc(u.restaurant?.name||'')}</strong><span class="hint">الاشتراك ساري حتى <b class="ltr">${exp.toLocaleDateString('en-GB')}</b> (${num(Math.max(days,0))} يوماً متبقية)</span></span></div>
@@ -771,24 +772,24 @@ const SETTINGS=[
     <div class="form"><label>كلمة المرور الحالية<input type="password" id="pwOld" class="ltr" autocomplete="current-password"></label><span></span>
       <label>كلمة المرور الجديدة<input type="password" id="pwNew" class="ltr" autocomplete="new-password"></label>
       <label>تأكيد كلمة المرور<input type="password" id="pwNew2" class="ltr" autocomplete="new-password"></label></div>
-    <div class="row" style="margin-top:12px"><button class="btn primary" onclick="changePassword()">حفظ كلمة المرور</button><button class="btn" onclick="if(confirm('تسجيل الخروج؟'))logout()">تسجيل الخروج ⎋</button></div>`}},
-  {id:'look',ico:'🎨',t:'المظهر',d:'خاص بهذا الجهاز فقط، ويُحفظ تلقائياً.',body:()=>`
+    <div class="row" style="margin-top:12px"><button class="btn primary" onclick="changePassword()">حفظ كلمة المرور</button><button class="btn" onclick="if(confirm('تسجيل الخروج؟'))logout()">تسجيل الخروج <i class="ic ic-logout"></i></button></div>`}},
+  {id:'look',ico:'<i class="ic ic-palette"></i>',t:'المظهر',d:'خاص بهذا الجهاز فقط، ويُحفظ تلقائياً.',body:()=>`
     <div class="themes">${THEMES.map(t=>`<button class="theme-card ${P.theme===t.id?'sel':''}" onclick="setPref('theme','${t.id}',event)">
       <div class="pv" style="background:${t.bg}"><div class="s" style="background:${t.side};border-color:${t.edge}"></div>
         <div class="c" style="background:${t.card};border-color:${t.edge}"><div class="b" style="background:${t.acc}"></div></div>
         <div class="c" style="background:${t.card};border-color:${t.edge}"><div class="b" style="background:${t.acc};width:40%"></div></div></div>
-      <div class="nm">${t.t}${P.theme===t.id?'<span class="badge b-green">✓ مفعّل</span>':''}</div><div class="d">${t.d}</div></button>`).join('')}</div>
+      <div class="nm">${t.t}${P.theme===t.id?'<span class="badge b-green"><i class="ic ic-check"></i> مفعّل</span>':''}</div><div class="d">${t.d}</div></button>`).join('')}</div>
     <div class="form" style="margin-top:18px">
       <label>حجم الخط<select onchange="setPref('font',+this.value)">${[[14,'صغير'],[15,'عادي'],[16,'كبير'],[17,'كبير جداً']].map(([v,t])=>`<option value="${v}" ${P.font===v?'selected':''}>${t}</option>`).join('')}</select></label>
     </div>
     <div style="margin-top:8px"><div class="set-toggle"><span><strong>الحركة والتأثيرات</strong><span class="hint">انتقالات ناعمة وتغيير المظهر بدائرة. أوقفها إذا كان الجهاز بطيئاً.</span></span>
       <button class="sw ${P.motion==='on'?'on':''}" onclick="setPref('motion',P.motion==='on'?'off':'on')"></button></div></div>`},
   {label:'البيانات'},
-  {id:'backup',ico:'💾',t:'النسخ الاحتياطي',d:'احفظ نسخة من بيانات المطعم أو استرجعها.',mgr:true,body:()=>`
-    <div class="set-toggle"><span><strong>تصدير نسخة احتياطية</strong><span class="hint">ملف JSON فيه المنيو والطلبات الحالية والمخزون والعملاء والإعدادات</span></span><button class="btn primary" onclick="exportData()">⬇ تصدير</button></div>
-    <div class="set-toggle"><span><strong>استرجاع نسخة</strong><span class="hint">تستبدل البيانات الحالية بالكامل</span></span><button class="btn" onclick="$('#importFile').click()">⬆ استرجاع</button></div>
-    <div class="set-toggle"><span><strong>طريقة الحفظ</strong><span class="hint">${{cloud:'على الإنترنت — محفوظة تلقائياً ومتزامنة بين كل أجهزة المطعم',server:'على خادم المطعم (server.py) — كل الأجهزة على نفس الشبكة',local:'في هذا المتصفح فقط (وضع التجربة)'}[MODE]}</span></span></div>`},
-  {id:'danger',ico:'⚠️',t:'منطقة الخطر',d:'عمليات لا يمكن التراجع عنها.',mgr:true,body:()=>`
+  {id:'backup',ico:'<i class="ic ic-database"></i>',t:'النسخ الاحتياطي',d:'احفظ نسخة من بيانات المطعم أو استرجعها.',mgr:true,body:()=>`
+    <div class="set-toggle"><span><strong>تصدير نسخة احتياطية</strong><span class="hint">ملف JSON فيه المنيو والطلبات الحالية والمخزون والعملاء والإعدادات</span></span><button class="btn primary" onclick="exportData()"><i class="ic ic-download"></i> تصدير</button></div>
+    <div class="set-toggle"><span><strong>استرجاع نسخة</strong><span class="hint">تستبدل البيانات الحالية بالكامل</span></span><button class="btn" onclick="$('#importFile').click()"><i class="ic ic-upload"></i> استرجاع</button></div>
+    <div class="set-toggle"><span><strong>طريقة الحفظ</strong><span class="hint">${{cloud:'على الإنترنت، محفوظة تلقائياً ومتزامنة بين كل أجهزة المطعم',server:'على خادم المطعم (server.py)، كل الأجهزة على نفس الشبكة',local:'في هذا المتصفح فقط (وضع التجربة)'}[MODE]}</span></span></div>`},
+  {id:'danger',ico:'<i class="ic ic-alert"></i>',t:'منطقة الخطر',d:'عمليات لا يمكن التراجع عنها.',mgr:true,body:()=>`
     <div class="danger-box"><span><strong>بدء من جديد</strong><span class="hint">يحذف المنيو والمخزون والطلبات والعملاء والمصاريف، ويُبقي إعدادات المطعم والطاولات وحسابات الموظفين</span></span>
       <button class="btn danger" onclick="resetAll()">مسح كل البيانات</button></div>`},
 ];
@@ -810,7 +811,7 @@ function togglePerm(role,k){
 }
 function setDiscount(v){
   v=Math.max(0,+v||0);
-  if(v>st().maxDiscount){toast(`أعلى خصم مسموح ${num(st().maxDiscount)}% — يحتاج موافقة المدير`);v=st().maxDiscount}
+  if(v>st().maxDiscount){toast(`أعلى خصم مسموح ${num(st().maxDiscount)}%، يحتاج موافقة المدير`);v=st().maxDiscount}
   ui.discount=v;render();
 }
 function topItems(orders){
@@ -827,7 +828,7 @@ function posItems(){
   const list=S.menu.filter(m=>(ui.cat==='الكل'||m.cat===ui.cat)&&(!q||m.name.includes(q)));
   return list.map(m=>{const ok=available(m),n=ui.cart.filter(l=>l.id===m.id).reduce((s,l)=>s+l.qty,0);return `<button class="item ${ok?'':'off'}" ${ok?`onclick="addToCart(${m.id})"`:'disabled'}>
      ${n?`<span class="qbadge">${num(n)}</span>`:''}<div class="pic">${pic(m)}</div><div class="nm">${esc(m.name)}</div><div class="pr">${fmt(m.price)}</div></button>`}).join('')
-    +(canI('addItem')&&!q?`<button class="item add-tile" onclick="openDish(null,ui.cat)"><b>＋</b><div class="nm">صنف جديد</div></button>`:'')
+    +(canI('addItem')&&!q?`<button class="item add-tile" onclick="openDish(null,ui.cat)"><b><i class="ic ic-plus"></i></b><div class="nm">صنف جديد</div></button>`:'')
     +(!list.length&&q?'<div class="empty">لا توجد نتائج</div>':'');
 }
 const cartOrder=()=>({items:ui.cart,type:ui.type,discount:ui.discount,fee:st().zones[ui.zone]?.fee});
@@ -839,12 +840,12 @@ function clearCart(){ui.cart=[];ui.discount=0;ui.cust={name:'',phone:'',address:
 function pickCustomer(phone){
   ui.cust.phone=phone.trim();
   const c=S.customers.find(x=>x.phone===ui.cust.phone);
-  if(c){ui.cust.name=c.name;ui.cust.address=c.address||'';toast(`⭐ ${c.name} — ${num(c.points)} نقطة`)}
+  if(c){ui.cust.name=c.name;ui.cust.address=c.address||'';toast(`<i class="ic ic-star"></i> ${c.name}، ${num(c.points)} نقطة`)}
   render();
 }
 // قائمة الطاولات مجمّعة حسب الطابق والقسم
 function tableOptions(sel){
-  return `<option value="">— اختر الطاولة —</option>`+S.floors.map(f=>f.sections.map(s=>{
+  return `<option value="">اختر الطاولة</option>`+S.floors.map(f=>f.sections.map(s=>{
     const ts=S.tables.filter(t=>t.section===s.id); if(!ts.length) return '';
     return `<optgroup label="${esc(f.name)} › ${esc(s.name)}">${ts.map(t=>`<option value="${t.id}" ${sel==t.id?'selected':''}>طاولة ${t.id} (${t.seats} أشخاص)${t.status==='busy'||t.status==='bill'?' · مفتوحة':t.status==='res'?' · محجوزة':''}</option>`).join('')}</optgroup>`}).join('')).join('');
 }
@@ -868,7 +869,7 @@ async function checkout(pay){
     o.fee=st().zones[ui.zone]?.fee??st().deliveryFee; o.zone=st().zones[ui.zone]?.name;
     if(sub(o)<st().minDelivery) return toast(`أقل مبلغ للتوصيل ${fmt(st().minDelivery)}`);
   }
-  try{await action({type:'order',order:o})}catch(e){return toast('⚠ '+errText(e))}
+  try{await action({type:'order',order:o})}catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}
   seenOrders.add(o.uid);
   const saved=orderByUid(o.uid)||o;
   if(pay) addCustomerSale(o.customer,total(saved));
@@ -876,24 +877,24 @@ async function checkout(pay){
   if(st().kitchenTicket) printTicket(saved);
   if(pay&&st().autoPrint) setTimeout(()=>printReceipt(saved),st().kitchenTicket?800:0);
   clearCart(); ui.table='';
-  toast(`✓ الطلب #${saved.id} أُرسل للمطبخ${pay?' — '+fmt(total(saved)):' — الدفع عند الحساب'}`);
+  toast(`✓ الطلب #${saved.id} أُرسل للمطبخ${pay?'، '+fmt(total(saved)):'، الدفع عند الحساب'}`);
 }
 async function advance(u,s){
-  try{await action({type:'status',uid:u,status:s})}catch(e){return toast('⚠ '+errText(e))}
-  render(); if(s==='ready') toast('🔔 تم إشعار الويتر: الطلب جاهز');
+  try{await action({type:'status',uid:u,status:s})}catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}
+  render(); if(s==='ready') toast('<i class="ic ic-bell"></i> تم إشعار الويتر: الطلب جاهز');
 }
 async function voidOrder(u){
   const o=orderByUid(u); if(!o) return;
   const reason=prompt(`إلغاء الطلب #${o.id} (${fmt(total(o))})\nاكتب سبب الإلغاء:`);
   if(reason===null) return; if(!reason.trim()) return toast('يجب ذكر سبب الإلغاء');
   const amount=calc(o).t;
-  try{await action({type:'void',uid:u,reason:reason.trim(),by:ME().name,at:Date.now()})}catch(e){return toast('⚠ '+errText(e))}
-  logAction('إلغاء طلب',`#${o.id} — ${num(amount)} — السبب: ${reason.trim()}`);
+  try{await action({type:'void',uid:u,reason:reason.trim(),by:ME().name,at:Date.now()})}catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}
+  logAction('إلغاء طلب',`#${o.id}، ${num(amount)}، السبب: ${reason.trim()}`);
   render(); toast('تم إلغاء الطلب');
 }
 
 /* ---- الطاولات والحساب ---- */
-async function setTable(id,s){try{await action({type:'table',id,status:s})}catch(e){return toast('⚠ '+errText(e))}render()}
+async function setTable(id,s){try{await action({type:'table',id,status:s})}catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}render()}
 function openTable(id){ui.type='صالة';ui.table=String(id);go('pos')}
 let billDisc=0, billCust='';
 function billOf(id){
@@ -905,8 +906,8 @@ function openBill(id){billDisc=0;billCust='';renderBill(id)}
 function renderBill(id){
   const {list,o}=billOf(id), c=calc(o);
   if(!list.length){if($('#dlg').open)closeDlg();return toast('لا توجد طلبات غير مدفوعة على هذه الطاولة')}
-  openDlg(`🧾 حساب ${esc(tableName(id))}`,`
-    <div class="muted" style="font-size:13px">${list.map(x=>'#'+x.id+' ('+esc(x.by||'—')+')').join(' · ')}</div>
+  openDlg(`<i class="ic ic-receipt"></i> حساب ${esc(tableName(id))}`,`
+    <div class="muted" style="font-size:13px">${list.map(x=>'#'+x.id+' ('+esc(x.by||'')+')').join(' · ')}</div>
     <div class="bill-lines">${o.items.map(l=>`<div class="sum"><span>${num(l.qty)} × ${esc(l.name)}</span><span>${fmt(l.price*l.qty)}</span></div>`).join('')}</div>
     ${canI('discount')?`<div class="row" style="margin:6px 0"><span class="muted">خصم %</span><input type="number" min="0" max="${st().maxDiscount}" value="${billDisc}" class="ltr" style="width:80px" onchange="billDisc=Math.min(st().maxDiscount,Math.max(0,+this.value||0));renderBill(${id})"></div>`:''}
     <div class="row" style="margin:6px 0"><span class="muted">📞 هاتف الزبون (للنقاط)</span><input type="tel" class="ltr" list="custList2" value="${esc(billCust)}" style="flex:1" onchange="billCust=this.value.trim()">
@@ -917,47 +918,47 @@ function renderBill(id){
     ${c.tx?`<div class="sum"><span>ضريبة ${num(st().tax)}%</span><span>${fmt(c.tx)}</span></div>`:''}
     <div class="sum total"><span>الإجمالي</span><span>${fmt(c.t)}</span></div>
     <div class="pay">${Object.keys(st().pays).filter(k=>st().pays[k]).map(k=>`<button style="background-color:${PAYC[k][1]}" onclick="payBill(${id},'${k}')">${PAYC[k][0]} ${k}</button>`).join('')}</div>`,
-    `<button class="btn" onclick="printBill(${id})">🖨️ طباعة الحساب قبل الدفع</button>`);
+    `<button class="btn" onclick="printBill(${id})"><i class="ic ic-print"></i> طباعة الحساب قبل الدفع</button>`);
 }
 function printBill(id){const b=billOf(id);printReceipt(b.o,{title:'حساب',orders:b.list})}
 async function payBill(id,pay){
   const {list,o}=billOf(id), amount=calc(o).t;
   const cust=billCust?{phone:billCust,name:S.customers.find(c=>c.phone===billCust)?.name||''}:null;
   try{await action({type:'pay',uids:list.map(x=>x.uid),pay,discount:billDisc,at:Date.now(),by:ME().name,table:id,customer:cust})}
-  catch(e){return toast('⚠ '+errText(e))}
+  catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}
   closeDlg();
   if(cust) addCustomerSale(cust,amount);
   if(billDisc) logAction('خصم',`حساب طاولة ${id}: ${billDisc}%`);
   if(st().autoPrint) printReceipt({...o,pay,paidBy:ME().name},{title:'فاتورة',orders:list});
-  toast(`✓ تم الدفع ${fmt(amount)} — الطاولة ${id} أصبحت فارغة`); render();
+  toast(`✓ تم الدفع ${fmt(amount)}، الطاولة ${id} أصبحت فارغة`); render();
 }
 function openMove(id){
   const free=S.tables.filter(t=>t.status==='free'&&t.id!==id);
-  openDlg(`⇄ نقل طاولة ${id}`,`<p class="muted">تُنقل كل الطلبات غير المدفوعة إلى الطاولة المختارة.</p>
+  openDlg(`<i class="ic ic-swap"></i> نقل طاولة ${id}`,`<p class="muted">تُنقل كل الطلبات غير المدفوعة إلى الطاولة المختارة.</p>
     <div class="tbl-pick">${free.map(t=>`<button onclick="moveTable(${id},${t.id})">${t.id}<div class="muted" style="font-size:11px;font-weight:600">${esc(tablePlace(t.id)?.s?.name||'')}</div></button>`).join('')||'<div class="empty">لا توجد طاولات فارغة</div>'}</div>`);
 }
 async function moveTable(from,to){
-  try{await action({type:'move',from,to})}catch(e){return toast('⚠ '+errText(e))}
+  try{await action({type:'move',from,to})}catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}
   closeDlg(); logAction('نقل طاولة',`${from} ← ${to}`); toast(`✓ نُقلت الطاولة ${from} إلى ${to}`); render();
 }
 
 /* ---- الحجوزات ---- */
 function reservationsCard(){
   const list=S.reservations.filter(r=>r.at>=dayStart()).sort((a,b)=>a.at-b.at);
-  return `<div class="card" style="margin-top:16px"><h3>📅 الحجوزات القادمة</h3>
+  return `<div class="card" style="margin-top:16px"><h3><i class="ic ic-calendar"></i> الحجوزات القادمة</h3>
    ${list.length?`<div class="table-wrap"><table><tr><th>الموعد</th><th>الاسم</th><th>الهاتف</th><th>الأشخاص</th><th>الطاولة</th><th>ملاحظة</th><th></th></tr>
    ${list.map(r=>`<tr><td><b>${isToday(r.at)?'اليوم':dateStr(r.at)}</b> ${timeStr(r.at)}</td><td>${esc(r.name)}</td><td class="ltr" style="text-align:end">${esc(r.phone)}</td><td>${num(r.people)}</td>
-     <td>${r.table?'طاولة '+r.table:'—'}</td><td class="muted">${esc(r.note||'')}</td>
-     <td style="white-space:nowrap"><button class="btn sm" onclick="arrive('${r.id}')">وصل</button> <button class="nbtn" onclick="delReservation('${r.id}')">🗑️</button></td></tr>`).join('')}</table></div>`
+     <td>${r.table?'طاولة '+r.table:''}</td><td class="muted">${esc(r.note||'')}</td>
+     <td style="white-space:nowrap"><button class="btn sm" onclick="arrive('${r.id}')">وصل</button> <button class="nbtn" onclick="delReservation('${r.id}')"><i class="ic ic-trash"></i></button></td></tr>`).join('')}</table></div>`
    :'<div class="empty">لا توجد حجوزات قادمة</div>'}</div>`;
 }
 function openReservation(){
   const d=new Date(Date.now()+3600e3); d.setMinutes(0);
   const local=new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,16);
-  openDlg('📅 حجز جديد',`<div class="form">
+  openDlg('<i class="ic ic-calendar"></i> حجز جديد',`<div class="form">
     <label>اسم الزبون<input type="text" id="rName"></label><label>الهاتف<input type="tel" id="rPhone" class="ltr"></label>
     <label>الموعد<input type="datetime-local" id="rAt" value="${local}" class="ltr"></label><label>عدد الأشخاص<input type="number" id="rPeople" value="4" min="1" class="ltr"></label>
-    <label>الطاولة<select id="rTable"><option value="">— لاحقاً —</option>${S.tables.map(t=>`<option value="${t.id}">طاولة ${t.id} (${t.seats})</option>`).join('')}</select></label>
+    <label>الطاولة<select id="rTable"><option value="">لاحقاً</option>${S.tables.map(t=>`<option value="${t.id}">طاولة ${t.id} (${t.seats})</option>`).join('')}</select></label>
     <label>ملاحظة<input type="text" id="rNote" placeholder="عيد ميلاد، كرسي أطفال…"></label></div>
     <label class="row" style="margin-top:10px;font-weight:600"><input type="checkbox" id="rMark"> علّم الطاولة «محجوزة» الآن</label>`,
     `<button class="btn" onclick="closeDlg()">إلغاء</button><button class="btn primary" onclick="saveReservation()">حفظ الحجز</button>`);
@@ -977,13 +978,13 @@ function delReservation(id){if(!confirm('حذف الحجز؟'))return;S.reservat
 const newId=p=>p+uid();
 function addFloor(){
   const id=newId('f'); S.floors.push({id,name:`الطابق ${num(S.floors.length+1)}`,sections:[{id:newId('s'),name:'القسم 1'}]});
-  ui.floor=id; save(); render(); toast('تمت إضافة طابق — غيّر الأسماء كما تريد');
+  ui.floor=id; save(); render(); toast('تمت إضافة طابق، غيّر الأسماء كما تريد');
 }
 function renameFloor(id,v){const f=S.floors.find(x=>x.id===id);if(v.trim()){f.name=v.trim();save();render()}}
 function delFloor(id){
   if(S.floors.length===1) return toast('يجب أن يبقى طابق واحد على الأقل');
   const f=S.floors.find(x=>x.id===id), ids=f.sections.map(s=>s.id);
-  if(S.tables.some(t=>ids.includes(t.section)&&t.status!=='free')) return toast('في الطابق طاولات مشغولة — حررها أولاً');
+  if(S.tables.some(t=>ids.includes(t.section)&&t.status!=='free')) return toast('في الطابق طاولات مشغولة، حررها أولاً');
   if(!confirm(`حذف «${f.name}» مع كل أقسامه وطاولاته؟`)) return;
   S.tables=S.tables.filter(t=>!ids.includes(t.section)); S.floors=S.floors.filter(x=>x.id!==id); ui.floor=S.floors[0].id; save(); render();
 }
@@ -991,14 +992,14 @@ function addSection(fid){const f=S.floors.find(x=>x.id===fid);f.sections.push({i
 function renameSection(fid,sid,v){const s=S.floors.find(x=>x.id===fid).sections.find(x=>x.id===sid);if(v.trim()){s.name=v.trim();save();render()}}
 function delSection(fid,sid){
   const f=S.floors.find(x=>x.id===fid);
-  if(S.tables.some(t=>t.section===sid&&t.status!=='free')) return toast('في القسم طاولات مشغولة — حررها أولاً');
+  if(S.tables.some(t=>t.section===sid&&t.status!=='free')) return toast('في القسم طاولات مشغولة، حررها أولاً');
   if(!confirm('حذف القسم مع طاولاته؟')) return;
   S.tables=S.tables.filter(t=>t.section!==sid); f.sections=f.sections.filter(s=>s.id!==sid); save(); render();
 }
 function addTable(sid){S.tables.push({id:Math.max(0,...S.tables.map(t=>t.id))+1,seats:4,status:'free',section:sid});save();render()}
 function delTable(id){
   const t=S.tables.find(x=>x.id===id);
-  if(openOrders(id).length) return toast('على الطاولة طلبات غير مدفوعة — أغلق حسابها أولاً');
+  if(openOrders(id).length) return toast('على الطاولة طلبات غير مدفوعة، أغلق حسابها أولاً');
   if(t.status!=='free'&&!confirm('الطاولة غير فارغة. حذفها على أي حال؟')) return;
   S.tables=S.tables.filter(x=>x.id!==id); save(); render();
 }
@@ -1015,7 +1016,7 @@ function editCategory(c){
   const n=prompt(`تعديل اسم «${c}» (اتركه فارغاً لحذف التصنيف):`,c); if(n===null) return;
   const i=S.categories.indexOf(c);
   if(!n.trim()){
-    if(S.menu.some(m=>m.cat===c)) return toast('في التصنيف أصناف — انقلها لتصنيف آخر أولاً');
+    if(S.menu.some(m=>m.cat===c)) return toast('في التصنيف أصناف، انقلها لتصنيف آخر أولاً');
     S.categories.splice(i,1);
   }else{S.categories[i]=n.trim();S.menu.forEach(m=>{if(m.cat===c)m.cat=n.trim()})}
   if(ui.cat===c) ui.cat='الكل'; save(); render();
@@ -1032,12 +1033,12 @@ function openDish(id,cat){
     <input type="file" id="dishImgIn" accept="image/*" hidden onchange="pickDishImg(this)">
     <label class="full">اسم الصنف<input type="text" id="dName" value="${esc(m?.name||'')}" placeholder="مثلاً: قوزي على تمن"></label>
     <label class="full">وصف قصير (اختياري)<input type="text" id="dDesc" value="${esc(m?.desc||'')}"></label>
-    <label>التصنيف<select id="dCat" onchange="$('#dNewCatL').hidden=this.value!=='__new'">${S.categories.map(x=>`<option ${x===c?'selected':''}>${esc(x)}</option>`).join('')}<option value="__new">＋ تصنيف جديد…</option></select></label>
+    <label>التصنيف<select id="dCat" onchange="$('#dNewCatL').hidden=this.value!=='__new'">${S.categories.map(x=>`<option ${x===c?'selected':''}>${esc(x)}</option>`).join('')}<option value="__new">+ تصنيف جديد…</option></select></label>
     <label id="dNewCatL" hidden>اسم التصنيف الجديد<input type="text" id="dNewCat"></label>
     <label>السعر<input type="number" id="dPrice" min="0" step="250" class="ltr" value="${m?.price||''}"></label>
     <label>رمز بديل (إذا لا توجد صورة)<input type="text" id="dEmo" maxlength="4" placeholder="🍽" value="${esc(m?.emo||'')}" oninput="dishPreview()"></label>
   </div>
-  <div class="sub-title">🧪 الوصفة (المواد التي تُخصم من المخزون لكل حصة)</div>
+  <div class="sub-title"><i class="ic ic-list"></i> الوصفة (المواد التي تُخصم من المخزون لكل حصة)</div>
   <div id="recipeBox"></div>`,
   `${m?`<button class="btn danger" onclick="deleteDish()">حذف الصنف</button>`:''}<span class="spacer"></span><button class="btn" onclick="closeDlg()">إلغاء</button><button class="btn primary" id="dishSave" onclick="saveDish()">حفظ</button>`,true);
   dishPreview(); renderRecipe(); if(!m) $('#dName').focus();
@@ -1045,15 +1046,15 @@ function openDish(id,cat){
 function dishPreview(){const s=imgSrc(dish.img);$('#dishPv').innerHTML=s?`<img src="${s}" alt="">`:esc($('#dEmo')?.value||'🍽');$('#dishImgDel').hidden=!dish.img}
 async function pickDishImg(input){
   const f=input.files[0]; input.value=''; if(!f) return;
-  try{dish.img=await resizeImage(f);dishPreview()}catch(e){toast('تعذر قراءة الصورة — جرّب صورة أخرى (JPG أو PNG)')}
+  try{dish.img=await resizeImage(f);dishPreview()}catch(e){toast('تعذر قراءة الصورة، جرّب صورة أخرى (JPG أو PNG)')}
 }
 function renderRecipe(){
   const cost=dish.recipe.reduce((s,r)=>s+(S.inventory.find(i=>i.id===r.k)?.cost||0)*(+r.v||0),0);
-  $('#recipeBox').innerHTML=!S.inventory.length?'<div class="muted" style="font-size:13px">لا توجد مواد في المخزون بعد — أضفها من صفحة المخزون ثم ارجع هنا.</div>':
+  $('#recipeBox').innerHTML=!S.inventory.length?'<div class="muted" style="font-size:13px">لا توجد مواد في المخزون بعد، أضفها من صفحة المخزون ثم ارجع هنا.</div>':
     dish.recipe.map((r,i)=>`<div class="recipe-row"><select onchange="dish.recipe[${i}].k=this.value;renderRecipe()">${S.inventory.map(x=>`<option value="${x.id}" ${x.id===r.k?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
       <input type="number" min="0" step="0.01" class="ltr" value="${r.v}" onchange="dish.recipe[${i}].v=+this.value;renderRecipe()"><span>${esc(S.inventory.find(x=>x.id===r.k)?.unit||'')}</span>
-      <button class="btn sm icon-btn" style="width:32px;height:32px" onclick="dish.recipe.splice(${i},1);renderRecipe()">✕</button></div>`).join('')+
-    `<div class="row" style="justify-content:space-between"><button class="btn sm" onclick="dish.recipe.push({k:S.inventory[0].id,v:0});renderRecipe()">＋ مادة</button>${canI('cost')?`<span class="muted">تكلفة الحصة: <b>${fmt(cost)}</b></span>`:''}</div>`;
+      <button class="btn sm icon-btn" style="width:32px;height:32px" onclick="dish.recipe.splice(${i},1);renderRecipe()"><i class="ic ic-x"></i></button></div>`).join('')+
+    `<div class="row" style="justify-content:space-between"><button class="btn sm" onclick="dish.recipe.push({k:S.inventory[0].id,v:0});renderRecipe()"><i class="ic ic-plus"></i> مادة</button>${canI('cost')?`<span class="muted">تكلفة الحصة: <b>${fmt(cost)}</b></span>`:''}</div>`;
 }
 async function saveDish(){
   const name=val('dName'), price=+val('dPrice');
@@ -1062,7 +1063,7 @@ async function saveDish(){
   if(cat==='__new'){cat=val('dNewCat'); if(!cat) return toast('أدخل اسم التصنيف الجديد'); if(!S.categories.includes(cat)) S.categories.push(cat)}
   const b=$('#dishSave'); b.disabled=true;
   try{if(dish.img&&dish.img.startsWith('data:')) dish.img=await storeImage(dish.img)}
-  catch(e){b.disabled=false;return toast('⚠ تعذر رفع الصورة: '+errText(e))}
+  catch(e){b.disabled=false;return toast('<i class="ic ic-alert"></i> تعذر رفع الصورة: '+errText(e))}
   const recipe={}; dish.recipe.forEach(r=>{if(r.k&&+r.v>0)recipe[r.k]=+r.v});
   const data={name,price,cat,desc:val('dDesc'),emo:val('dEmo')||'🍽',img:dish.img,recipe};
   if(dish.id){const m=item(dish.id);if(m.price!==price)logAction('تعديل سعر',`${name}: ${num(m.price)} ← ${num(price)}`);Object.assign(m,data)}
@@ -1100,7 +1101,7 @@ function delMaterial(id){
 }
 function openStock(id,kind){
   const i=S.inventory.find(x=>x.id===id);
-  openDlg(kind==='in'?`＋ استلام ${esc(i.name)}`:`− هدر / تالف: ${esc(i.name)}`,`<div class="form">
+  openDlg(kind==='in'?`<i class="ic ic-plus"></i> استلام ${esc(i.name)}`:`− هدر / تالف: ${esc(i.name)}`,`<div class="form">
     <label>الكمية (${esc(i.unit)})<input type="number" id="sQty" min="0" step="0.01" class="ltr"></label>
     ${kind==='in'?`<label>سعر الوحدة الجديد (اختياري)<input type="number" id="sCost" min="0" step="250" class="ltr" placeholder="${i.cost}"></label>`
       :`<label>السبب<select id="sReason">${['تالف','منتهي الصلاحية','سقط / انسكب','خطأ تحضير','وجبة موظفين','أخرى'].map(r=>`<option>${r}</option>`).join('')}</select></label>`}
@@ -1117,7 +1118,7 @@ function saveStock(id,kind){
   }else{
     const r=$('#sReason').value; i.qty=Math.max(0,+(i.qty-q).toFixed(3));
     S.waste.unshift({at:Date.now(),id,name:i.name,unit:i.unit,qty:q,reason:r,by:ME().name,cost:q*i.cost}); S.waste.length=Math.min(S.waste.length,1000);
-    logAction('هدر',`${i.name}: ${dec(q)} ${i.unit} — ${r}`);
+    logAction('هدر',`${i.name}: ${dec(q)} ${i.unit}، ${r}`);
   }
   save(); closeDlg(); render(); toast('✓ تم التحديث');
 }
@@ -1154,9 +1155,9 @@ function shiftData(){
     voids:S.orders.filter(o=>o.status==='void'&&(o.voidAt||o.createdAt)>=start).length,
     unpaid:dueTables().length,disc:paid.reduce((s,o)=>s+calc(o).d,0)};
 }
-function diffHtml(c){const d=c-shiftData().expected;return isNaN(c)||c===0?'':`<b style="color:${d<0?'var(--red)':'var(--green)'}">${d<0?'عجز':d>0?'زيادة':'مطابق ✓'} ${d?fmt(Math.abs(d)):''}</b>`}
+function diffHtml(c){const d=c-shiftData().expected;return isNaN(c)||c===0?'':`<b style="color:${d<0?'var(--red)':'var(--green)'}">${d<0?'عجز':d>0?'زيادة':'مطابق'} ${d?fmt(Math.abs(d)):''}</b>`}
 function zReportHtml(z){
-  return `<div class="c"><h1>${esc(st().name)}</h1><div class="b">${z.closed?'تقرير Z — إغلاق وردية':'تقرير X — بدون إغلاق'}</div>
+  return `<div class="c"><h1>${esc(st().name)}</h1><div class="b">${z.closed?'تقرير Z، إغلاق وردية':'تقرير X، بدون إغلاق'}</div>
     <div>${dateStr(z.start)} ${timeStr(z.start)} ← ${timeStr(z.end)}</div><div>${esc(z.by)}</div></div><hr>
     <div class="r"><span>عدد الطلبات</span><span>${num(z.count)}</span></div>
     ${Object.entries(z.byPay).map(([k,v])=>`<div class="r"><span>${esc(k)}</span><span>${num(v)}</span></div>`).join('')}
@@ -1176,14 +1177,14 @@ function closeShift(){
   if(!confirm('إغلاق الوردية الحالية وبدء وردية جديدة؟')) return;
   z.counted=raw===''?null:+raw; z.diff=z.counted==null?null:z.counted-z.expected; z.closed=true; z.end=Date.now();
   S.shifts.unshift(z); S.shifts.length=Math.min(S.shifts.length,400); S.shiftStart=z.end; save();
-  logAction('إغلاق وردية',`المبيعات ${num(z.total)}${z.diff!=null?` — الفرق ${num(z.diff)}`:''}`);
+  logAction('إغلاق وردية',`المبيعات ${num(z.total)}${z.diff!=null?`، الفرق ${num(z.diff)}`:''}`);
   printHtml(zReportHtml(z)); render(); toast('✓ تم إغلاق الوردية');
 }
 
 /* ---- المصاريف ---- */
 function openExpense(){
   const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
-  openDlg('💸 مصروف جديد',`<div class="form">
+  openDlg('<i class="ic ic-banknote"></i> مصروف جديد',`<div class="form">
     <label>البند<select id="eCat">${EXPENSE_CATS.map(c=>`<option>${c}</option>`).join('')}</select></label>
     <label>المبلغ<input type="number" id="eAmt" min="0" step="250" class="ltr"></label>
     <label>التاريخ<input type="date" id="eDate" value="${today}" class="ltr"></label>
@@ -1213,7 +1214,7 @@ function report(all,from,to){
   const hours={};ok.forEach(o=>{const h=new Date(o.createdAt).getHours();hours[h]=(hours[h]||0)+1});
   return {sales,count:ok.length,avg:ok.length?sales/ok.length:0,disc:ok.reduce((s,o)=>s+calc(o).d,0),mat,exp,waste,net:sales-mat-exp-waste,
     voids:voids.length,voidAmt:voids.reduce((s,o)=>s+calc(o).t,0),
-    byPay:group(o=>o.pay||'غير مدفوع'),byType:group(o=>o.type),byStaff:group(o=>o.by||'—'),
+    byPay:group(o=>o.pay||'غير مدفوع'),byType:group(o=>o.type),byStaff:group(o=>o.by||''),
     byCat:Object.entries(cats).sort((a,b)=>b[1]-a[1]),top:topItems(ok),
     byHour:Object.entries(hours).sort((a,b)=>a[0]-b[0]).map(([h,n])=>[h+':00',n])};
 }
@@ -1223,7 +1224,7 @@ function exportReport(){
   all.slice().sort((a,b)=>a.createdAt-b.createdAt).forEach(o=>rows.push([o.id,new Date(o.createdAt).toLocaleDateString('en-GB'),timeStr(o.createdAt),o.type,o.table||'',o.by||'',o.customer?.name||'',o.customer?.phone||'',
     o.items.map(l=>lineName(l)+' x'+l.qty).join(' | '),sub(o),o.discount||0,o.status==='void'?0:calc(o).t,o.pay||'غير مدفوع',o.status==='void'?'ملغي':'مكتمل',o.voidReason||'']));
   downloadFile(`تقرير-المبيعات-${new Date(from).toISOString().slice(0,10)}.csv`,csv(rows),'text/csv;charset=utf-8');
-  toast('✓ تم تنزيل التقرير — يفتح في Excel');
+  toast('✓ تم تنزيل التقرير، يفتح في Excel');
 }
 
 /* ---- الموظفون ---- */
@@ -1236,7 +1237,7 @@ function openStaff(id){
     <label>الدور<select id="uRole">${ROLES.map(r=>`<option ${p?.role===r?'selected':''}>${r}</option>`).join('')}</select></label>
     <label>الوردية<select id="uShift">${['صباحي','مسائي','ليلي','كامل'].map(s=>`<option ${p?.shift===s?'selected':''}>${s}</option>`).join('')}</select></label>
     <label style="flex-direction:row;align-items:center;gap:10px">الحساب فعّال <button type="button" class="sw ${p?.on===false?'':'on'}" id="uOn" onclick="this.classList.toggle('on')"></button></label></div>
-    ${cloud?'<p class="muted" style="font-size:12.5px">💡 اسم المستخدم بالإنجليزي والأرقام فقط، وفريد على مستوى البرنامج (مثلاً: ali.diyar). أعطِ الموظف اسم المستخدم وكلمة المرور ليدخل من أي جهاز.</p>':''}`,
+    ${cloud?'<p class="muted" style="font-size:12.5px"><i class="ic ic-info"></i> اسم المستخدم بالإنجليزي والأرقام فقط، وفريد على مستوى البرنامج (مثلاً: ali.diyar). أعطِ الموظف اسم المستخدم وكلمة المرور ليدخل من أي جهاز.</p>':''}`,
     `${p&&p.id!==ME().id?`<button class="btn danger" onclick="delStaff('${p.id}')">حذف</button>`:''}<span class="spacer"></span><button class="btn" onclick="closeDlg()">إلغاء</button><button class="btn primary" id="uSave" onclick="saveStaff(${p?`'${p.id}'`:'null'})">حفظ</button>`);
 }
 async function saveStaff(id){
@@ -1247,8 +1248,8 @@ async function saveStaff(id){
     if(!id&&!d.password) return toast('أدخل كلمة مرور للموظف');
     const b=$('#uSave'); b.disabled=true;
     try{await rpc('rms_staff_save',{p_token:TOKEN(),p_user:d});await loadStaff()}
-    catch(e){b.disabled=false;return toast('⚠ '+errText(e))}
-    closeDlg(); render(); return toast(id?'✓ تم تعديل الموظف':`✓ تمت الإضافة — اسم المستخدم: ${d.username}`);
+    catch(e){b.disabled=false;return toast('<i class="ic ic-alert"></i> '+errText(e))}
+    closeDlg(); render(); return toast(id?'✓ تم تعديل الموظف':`✓ تمت الإضافة، اسم المستخدم: ${d.username}`);
   }
   const p=id?S.staff.find(x=>String(x.id)===String(id)):null;
   if(p&&p.id===ME().id&&(d.role!=='مدير'||!d.active)) return toast('لا يمكنك إيقاف حسابك أو تغيير دورك');
@@ -1259,7 +1260,7 @@ async function saveStaff(id){
 async function delStaff(id){
   const p=S.staff.find(x=>String(x.id)===String(id));
   if(!confirm(`حذف ${p.name} نهائياً؟ (يمكنك بدلاً من ذلك إيقاف حسابه)`)) return;
-  if(MODE==='cloud'){try{await rpc('rms_staff_delete',{p_token:TOKEN(),p_id:id});await loadStaff()}catch(e){return toast('⚠ '+errText(e))}}
+  if(MODE==='cloud'){try{await rpc('rms_staff_delete',{p_token:TOKEN(),p_id:id});await loadStaff()}catch(e){return toast('<i class="ic ic-alert"></i> '+errText(e))}}
   else{S.staff=S.staff.filter(x=>String(x.id)!==String(id));logAction('حذف موظف',p.name);save()}
   closeDlg(); render();
 }
@@ -1270,12 +1271,12 @@ async function changePassword(){
   if(n!==$('#pwNew2').value) return toast('كلمتا المرور غير متطابقتين');
   if(n.length<6) return toast(ERR_TEXT.WEAK_PASSWORD);
   try{const r=await rpc('rms_change_password',{p_token:TOKEN(),p_old:o,p_new:n});if(r.error)throw {code:'LOGIN'}}
-  catch(e){return toast('⚠ '+(e.code==='LOGIN'?'كلمة المرور الحالية غير صحيحة':errText(e)))}
+  catch(e){return toast('<i class="ic ic-alert"></i> '+(e.code==='LOGIN'?'كلمة المرور الحالية غير صحيحة':errText(e)))}
   ['pwOld','pwNew','pwNew2'].forEach(i=>$('#'+i).value=''); toast('✓ تم تغيير كلمة المرور');
 }
 async function pickLogo(input){
   const f=input.files[0]; input.value=''; if(!f) return;
-  try{const d=await resizeImage(f,256); setS('logoImg',await storeImage(d))}catch(e){toast('⚠ '+errText(e))}
+  try{const d=await resizeImage(f,256); setS('logoImg',await storeImage(d))}catch(e){toast('<i class="ic ic-alert"></i> '+errText(e))}
 }
 function exportData(){
   downloadFile(`نسخة-المطعم-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(S,null,2),'application/json');
@@ -1312,7 +1313,7 @@ loadState().then(()=>{
     setTimeout(arc,5000); setInterval(arc,3600e3);
     setInterval(()=>loadStaff().catch(()=>{}),300e3);
   }
-}).catch(e=>{$('#view').innerHTML=`<div class="empty card">⚠ تعذر الاتصال بالمطعم (${esc(errText(e))}).<br>تأكد من اتصال الإنترنت (أو أن server.py يعمل) ثم حدّث الصفحة.</div>`});
+}).catch(e=>{$('#view').innerHTML=`<div class="empty card"><i class="ic ic-alert"></i> تعذر الاتصال بالمطعم (${esc(errText(e))}).<br>تأكد من اتصال الإنترنت (أو أن server.py يعمل) ثم حدّث الصفحة.</div>`});
 </script>
 </body>
 </html>

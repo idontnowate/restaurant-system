@@ -1,5 +1,5 @@
-/* pwa.js — تثبيت البرنامج كتطبيق على الموبايل والكمبيوتر، وحفظه ليفتح بدون إنترنت
- * يعمل فقط على https (مثل GitHub Pages) أو localhost — المتصفحات لا تسمح به على http عادي.
+/* pwa.js، تثبيت البرنامج كتطبيق على الموبايل والكمبيوتر، وحفظه ليفتح بدون إنترنت
+ * يعمل فقط على https (مثل GitHub Pages) أو localhost، المتصفحات لا تسمح به على http عادي.
  */
 (function () {
   if (!('serviceWorker' in navigator) || !window.isSecureContext) return;

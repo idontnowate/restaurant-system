@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="aurora">
+<html lang="ar" dir="rtl" data-theme="ember">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ربط الأجهزة</title>
 <script>
-  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}');document.documentElement.dataset.theme=p.theme||'aurora'}catch(e){}
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}'),t=p.theme;if(!p.v2&&(!t||t==='aurora'))t='ember';document.documentElement.dataset.theme=t}catch(e){}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#070912">
+<meta name="theme-color" content="#121212">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="المطعم">
@@ -31,7 +31,7 @@ ol{margin:0;padding-inline-start:20px;line-height:2}
 </head>
 <body>
 <div class="wrap">
-  <h1>📱 ربط الموبايلات والأجهزة</h1>
+  <h1><i class="ic ic-phone"></i> ربط الموبايلات والأجهزة</h1>
   <p class="muted" style="margin:0" id="hint">امسح الرمز بكاميرا الموبايل. يجب أن يكون الموبايل على <b>نفس شبكة الواي فاي</b> لهذا الجهاز.</p>
   <div class="codes" id="codes"><div class="empty card">جاري التحميل…</div></div>
   <div class="card" style="margin-top:16px" id="tips">
@@ -55,13 +55,13 @@ function cloud(){
   // عبر الإنترنت: يكفي فتح الرابط؛ كل موظف يدخل باسم المستخدم وكلمة المرور الخاصة به
   const url=p=>new URL(p,location.href).href.split('#')[0];
   document.getElementById('tips').hidden=true;
-  show([['🧑‍🍳 تطبيق الويتر',url('waiter.html'),'للويترية: إرسال الطلبات للمطبخ'],
-        ['🖥️ لوحة الإدارة',url('admin.html'),'للكاشير والمطبخ والمدير']],
-       'امسح الرمز بكاميرا الموبايل — يعمل من أي مكان بوجود الإنترنت. يدخل كل موظف باسم المستخدم وكلمة المرور التي أعطاها له المدير، ويمكن تثبيته كتطبيق من قائمة المتصفح.');
+  show([['<i class="ic ic-chef"></i> تطبيق الويتر',url('waiter.html'),'للويترية: إرسال الطلبات للمطبخ'],
+        ['<i class="ic ic-monitor"></i> لوحة الإدارة',url('admin.html'),'للكاشير والمطبخ والمدير']],
+       'امسح الرمز بكاميرا الموبايل، يعمل من أي مكان بوجود الإنترنت. يدخل كل موظف باسم المستخدم وكلمة المرور التي أعطاها له المدير، ويمكن تثبيته كتطبيق من قائمة المتصفح.');
 }
 fetch('/api/info').then(r=>r.json()).then(({ips,port})=>{
   const base=`http://${ips[0]||location.hostname}:${port}`;
-  show([['🧑‍🍳 تطبيق الويتر',base+'/waiter.html','للويترية: إرسال الطلبات للمطبخ'],['🖥️ لوحة الإدارة',base+'/','للكاشير والمطبخ والمدير']]);
+  show([['<i class="ic ic-chef"></i> تطبيق الويتر',base+'/waiter.html','للويترية: إرسال الطلبات للمطبخ'],['<i class="ic ic-monitor"></i> لوحة الإدارة',base+'/','للكاشير والمطبخ والمدير']]);
 }).catch(cloud);
 </script>
 </body>
