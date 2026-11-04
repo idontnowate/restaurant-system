@@ -5,7 +5,7 @@
  * - الخطوط من Google تُحفظ عند أول تحميل.
  * عند تغيير قائمة الملفات ارفع رقم CACHE.
  */
-const CACHE = 'restaurant-v4';
+const CACHE = 'restaurant-v5';
 const FILES = [
   'admin.html', 'waiter.html', 'connect.html', 'login.html', 'core.js', 'theme.css', 'pwa.js', 'vendor/qrcode-1.0.0.min.js',
   'manifest.webmanifest', 'waiter.webmanifest',

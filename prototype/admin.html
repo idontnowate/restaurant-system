@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="ember">
+<html lang="ar" dir="rtl" data-theme="aurora">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>إدارة المطعم</title>
 <script>
   // تطبيق المظهر قبل رسم الصفحة حتى لا يومض المظهر الافتراضي
-  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}'),t=p.theme;if(!p.v2&&(!t||t==='aurora'))t='ember';document.documentElement.dataset.theme=t}catch(e){}
+  try{var p=JSON.parse(localStorage.getItem('rms-prefs')||'{}'),t=p.theme;if(!t||t==='ember')t='aurora';document.documentElement.dataset.theme=t}catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#121212">
+<meta name="theme-color" content="#070912">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="المطعم">
@@ -215,6 +215,43 @@
   .set-nav button{width:auto;border:1px solid var(--btn-edge);background:var(--btn-bg);border-radius:999px}
 }
 @media (max-width:480px){.kpis{grid-template-columns:1fr 1fr}.kpi .val{font-size:19px}.zone-row{grid-template-columns:1fr 100px auto}.recipe-row{grid-template-columns:1fr 80px 36px}.recipe-row span{display:none}}
+
+/* ===== التخطيط: قائمة ملتصقة بحافة الشاشة، شريط علوي ملتصق، وأرقام اليوم في شريط واحد ===== */
+.app{grid-template-columns:240px 1fr}
+.side{margin:0;top:0;height:100vh;border-radius:0;border:0;border-inline-end:1px solid var(--border);box-shadow:none;padding:12px 10px}
+.brand{padding:4px 6px 12px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.brand .logo{width:34px;height:34px;border-radius:9px;font-size:18px}
+.nav button,.side-link{border-radius:8px;padding:8px 10px}
+.nav .ico,.side-link .ico{width:22px;height:auto;background:none;font-size:17px;color:var(--muted)}
+.nav button.active .ico{background:none;box-shadow:none;color:inherit}
+.nav button.active::before{inset-inline-start:-4px;top:7px;bottom:7px;width:3px;border-radius:2px}
+.nav .count{background:var(--surface-2);color:var(--text);font-weight:700}
+.main{padding:0}
+.top{margin:0;padding:12px 24px}
+.top h1{font-size:19px}
+.page-ico{display:none}
+#banner:not(:empty){padding:14px 24px 0}
+#view{padding:18px 24px 40px}
+.cart{top:76px}
+.card h3 .ic{display:none}
+.kpis{gap:0!important;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.kpis .kpi{background:none!important;border:0;border-radius:0;box-shadow:none;padding:14px 18px;border-inline-start:1px solid var(--line)}
+.kpis .kpi:nth-child(4n+1){border-inline-start:0}
+.kpis .kpi:nth-child(n+5){border-top:1px solid var(--line)}
+.kpi-ico,.kpi::after{display:none!important}
+.kpi:has(.kpi-ico) .label{padding-inline-end:0}
+.kpi .val{text-shadow:none;font-size:22px}
+@media (max-width:1100px){
+  .kpis .kpi{border-inline-start:1px solid var(--line);border-top:0}
+  .kpis .kpi:nth-child(odd){border-inline-start:0}
+  .kpis .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+}
+@media (max-width:860px){
+  .side{height:100vh}
+  .top{margin:0;padding:10px 16px}
+  #banner:not(:empty){padding:12px 16px 0}
+  #view{padding:14px 16px 30px}
+}
 </style>
 </head>
 <body>
@@ -685,11 +722,10 @@ const fToggle=(title,hint,key)=>`<div class="set-toggle"><span><strong>${title}<
 const fToggleIn=(title,hint,obj,key)=>`<div class="set-toggle"><span><strong>${title}</strong>${hint?`<span class="hint">${hint}</span>`:''}</span><button class="sw ${st()[obj][key]?'on':''}" onclick="toggleIn('${obj}','${key}')"></button></div>`;
 
 const THEMES=[
-  {id:'ember',t:'الداكن الدافئ',d:'الافتراضي، هادئ ومريح للعين',bg:'#121212',side:'#1b1b1d',card:'#232326',acc:'#e8772e',edge:'#2c2c30'},
   {id:'light',t:'الفاتح',d:'أبيض نظيف لإضاءة النهار',bg:'#f6f6f7',side:'#fff',card:'#fff',acc:'#0c8a63',edge:'#e7e8eb'},
   {id:'dark',t:'الداكن',d:'مريح للعين في الليل',bg:'#0b0c0e',side:'#131518',card:'#1a1d21',acc:'#3ccf98',edge:'#23262b'},
   {id:'glass',t:'زجاج',d:'بأسلوب iOS، طبقات زجاج لامعة',bg:'radial-gradient(70% 60% at 90% 0%,#55555a,transparent 70%),#161618',side:'rgba(255,255,255,.1)',card:'rgba(255,255,255,.13)',acc:'#0a84ff',edge:'rgba(255,255,255,.2)'},
-  {id:'aurora',t:'زجاجي ملوّن',d:'إضاءة فيروزية وبنفسجية',bg:'radial-gradient(60% 70% at 90% 0%,rgba(14,165,233,.65),transparent 70%),radial-gradient(60% 70% at 0% 100%,rgba(168,85,247,.65),transparent 70%),#121212',side:'rgba(255,255,255,.08)',card:'rgba(255,255,255,.1)',acc:'linear-gradient(90deg,#06b6d4,#8b5cf6)',edge:'rgba(255,255,255,.16)'},
+  {id:'aurora',t:'زجاجي ملوّن',d:'إضاءة فيروزية وبنفسجية (الافتراضي)',bg:'radial-gradient(60% 70% at 90% 0%,rgba(14,165,233,.65),transparent 70%),radial-gradient(60% 70% at 0% 100%,rgba(168,85,247,.65),transparent 70%),#070912',side:'rgba(255,255,255,.08)',card:'rgba(255,255,255,.1)',acc:'linear-gradient(90deg,#06b6d4,#8b5cf6)',edge:'rgba(255,255,255,.16)'},
 ];
 
 const SETTINGS=[

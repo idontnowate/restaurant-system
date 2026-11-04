@@ -22,21 +22,6 @@
   --glow-a:.2; --val-glow:.55; --dot:1;
   --strong:linear-gradient(180deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 60%),rgba(14,18,36,.9); --opt-bg:#141a30;
 }
-/* الداكن الدافئ (الافتراضي): فحمي هادئ مع لون برتقالي واحد */
-[data-theme="ember"]{
-  color-scheme:dark;
-  --bg:#121212; --wallpaper:#121212;
-  --surface:#1b1b1d; --surface-2:#232326; --border:#2c2c30; --line:#2a2a2e;
-  --text:#f3f1ee; --muted:#a19d97;
-  --primary:#f08c3b; --primary-soft:rgba(240,140,59,.14);
-  --green:#4cc38a; --green-soft:rgba(76,195,138,.13); --amber:#e9c46a; --amber-soft:rgba(233,196,106,.13);
-  --red:#f0695f; --red-soft:rgba(240,105,95,.13); --blue:#7aa2f7; --blue-soft:rgba(122,162,247,.13);
-  --grad:#e8772e; --on-grad:#fff; --grad-shadow:none; --chart:#e8772e;
-  --hl:rgba(232,119,46,.13); --hl-text:#f5a463; --hl-shadow:none;
-  --btn-bg:#232326; --btn-edge:#34343a; --shine:none; --shadow:none;
-  --field-bg:#161618; --field-edge:#34343a; --ring:232,119,46; --row-hover:rgba(255,255,255,.025);
-  --glow-a:0; --val-glow:0; --dot:0; --strong:#1b1b1d; --opt-bg:#1b1b1d;
-}
 /* زجاج بأسلوب iOS، glass.css */
 [data-theme="glass"]{
   color-scheme:dark;
@@ -78,13 +63,13 @@
   --bg:#f6f6f7; --wallpaper:#f6f6f7;
   --surface:#fff; --surface-2:#f3f4f6; --border:#e7e8eb; --line:#e7e8eb;
   --text:#0e1116; --muted:#6b7280;
-  --primary:#c2540f; --primary-soft:#fdeee3;
+  --primary:#0a6d4f; --primary-soft:#e6f4ee;
   --green:#0c8a63; --green-soft:#e6f4ee; --amber:#93570a; --amber-soft:#fdf3e1;
   --red:#b42318; --red-soft:#fdecea; --blue:#2449a8; --blue-soft:#ebf0fd;
-  --grad:#e8772e; --on-grad:#fff; --grad-shadow:none; --chart:#e8772e;
-  --hl:#fdeee3; --hl-text:#b4480b; --hl-shadow:none;
+  --grad:#111318; --on-grad:#fff; --grad-shadow:none; --chart:#0c8a63;
+  --hl:#e6f4ee; --hl-text:#0a6d4f; --hl-shadow:none;
   --btn-bg:#fff; --btn-edge:#d5d8dd; --shine:none; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 14px rgba(0,0,0,.04);
-  --field-bg:#f3f4f6; --field-edge:#e7e8eb; --ring:232,119,46; --row-hover:#f9fafb;
+  --field-bg:#f3f4f6; --field-edge:#e7e8eb; --ring:12,138,99; --row-hover:#f9fafb;
   --glow-a:0; --val-glow:0; --dot:0; --strong:#fff; --opt-bg:#fff;
 }
 
@@ -304,10 +289,20 @@ input[type=search]{border:1px solid var(--field-edge);background:var(--field-bg)
 .ic-ban{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18'/%3E%3Cpath d='M5.6 5.6l12.8 12.8'/%3E%3C/svg%3E")}
 .ic-hourglass{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12'/%3E%3Cpath d='M6 21h12'/%3E%3Cpath d='M7 3c0 5 5 6 5 9s-5 4-5 9'/%3E%3Cpath d='M17 3c0 5-5 6-5 9s5 4 5 9'/%3E%3C/svg%3E")}
 
-/* بطاقات الأرقام بألوان هادئة في المظهرين الافتراضي والفاتح */
-[data-theme="ember"] .kpi:nth-child(4n+1),[data-theme="light"] .kpi:nth-child(4n+1){--glow:232,119,46}
-[data-theme="ember"] .kpi:nth-child(4n+2),[data-theme="light"] .kpi:nth-child(4n+2){--glow:76,195,138}
-[data-theme="ember"] .kpi:nth-child(4n+3),[data-theme="light"] .kpi:nth-child(4n+3){--glow:122,162,247}
-[data-theme="ember"] .kpi:nth-child(4n+4),[data-theme="light"] .kpi:nth-child(4n+4){--glow:214,160,40}
 .initial{font-weight:800;opacity:.55;line-height:1}
 .page-ico,.avatar{color:var(--on-grad)}
+
+/* ================= تخطيط عملي =================
+ * زوايا أصغر وأزرار مستطيلة وبدون حركات قفز: أقرب لأنظمة نقاط البيع المستخدمة فعلاً. */
+.card{border-radius:12px}
+.btn,.pills button{border-radius:9px}
+.btn.icon-btn{border-radius:10px}
+.seg{border-radius:10px}.seg button{border-radius:8px}
+input[type=text],input[type=number],input[type=tel],input[type=password],input[type=search],input[type=date],input[type=datetime-local],select,textarea{border-radius:9px}
+dialog{border-radius:14px}
+.item{border-radius:12px}.item .pic{border-radius:8px}
+.item:not(.off):not(:disabled):not(.add-tile):hover{transform:none;box-shadow:var(--shadow)}
+.tbl{border-radius:12px}
+.qty button{border-radius:8px}
+.toast{border-radius:10px}
+.img-drop{border-radius:10px}

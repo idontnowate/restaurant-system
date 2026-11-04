@@ -459,11 +459,11 @@ function applyOp(s,op){
 
 /* ============ تفضيلات هذا الجهاز ============ */
 const PKEY='rms-prefs';
-let P={theme:'ember',lastDark:'ember',motion:'on',font:15,user:1,waiter:null};
+let P={theme:'aurora',lastDark:'aurora',motion:'on',font:15,user:1,waiter:null};
 try{P={...P,...JSON.parse(localStorage.getItem(PKEY)||'{}')}}catch(e){}
 const savePrefs=()=>{try{localStorage.setItem(PKEY,JSON.stringify(P))}catch(e){}};
-// المظهر الافتراضي تغيّر إلى «الداكن الدافئ»: ننقل الأجهزة التي كانت على الافتراضي القديم مرة واحدة
-if(!P.v2){if(P.theme==='aurora')P.theme='ember';if(P.lastDark==='aurora')P.lastDark='ember';P.v2=1;savePrefs()}
+// المظهر البرتقالي أُزيل: الأجهزة التي انتقلت إليه ترجع للمظهر السابق
+if(P.theme==='ember')P.theme='aurora';if(P.lastDark==='ember')P.lastDark='aurora';
 function applyPrefs(){const r=document.documentElement;r.dataset.theme=P.theme;r.dataset.motion=P.motion;r.style.fontSize=P.font+'px'}
 function setPref(k,v,ev){
   const prev=P.theme; P[k]=v; if(k==='theme'&&v!=='light') P.lastDark=v; savePrefs();
