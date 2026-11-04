@@ -63,6 +63,13 @@ def apply_op(s, op):
         o = json.loads(json.dumps(op['order']))
         if by_uid(o['uid']):
             return
+        # الترقيم: يمكن أن يرجع للبداية كل يوم (نفس منطق core.js)
+        if s['settings'].get('numReset') == 'daily':
+            import datetime
+            day = datetime.datetime.fromtimestamp(o.get('createdAt', 0) / 1000).strftime('%a %b %d %Y')
+            if s.get('numDay') != day:
+                s['numDay'] = day
+                s['nextId'] = int(s['settings'].get('numStart') or 1)
         o['id'] = s.get('nextId', 1)
         s['nextId'] = o['id'] + 1
         s['orders'].append(o)

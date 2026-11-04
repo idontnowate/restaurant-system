@@ -60,6 +60,11 @@ create table if not exists public.rms_users (
 );
 create index if not exists rms_users_restaurant on public.rms_users (restaurant_id);
 
+-- الباقة والميزات المفتوحة لكل مطعم ورسالة المزوّد له (أُضيفت لاحقاً)
+alter table public.rms_restaurants add column if not exists plan     text  not null default '';
+alter table public.rms_restaurants add column if not exists features jsonb not null default '{}'::jsonb;
+alter table public.rms_restaurants add column if not exists message  text  not null default '';
+
 create table if not exists public.rms_sessions (
   token_hash text primary key,
   kind       text not null check (kind in ('user','provider')),
@@ -193,7 +198,8 @@ create or replace function public.rms_user_json(u public.rms_users) returns json
 language sql stable security definer set search_path = public
 as $$
   select jsonb_build_object('id', u.id, 'name', u.name, 'username', u.username, 'role', u.role, 'shift', u.shift,
-    'restaurant', (select jsonb_build_object('id', r.id, 'name', r.name, 'expires_at', r.expires_at)
+    'restaurant', (select jsonb_build_object('id', r.id, 'name', r.name, 'expires_at', r.expires_at,
+                                             'plan', r.plan, 'features', r.features, 'message', r.message)
                    from public.rms_restaurants r where r.id = u.restaurant_id))
 $$;
 
@@ -464,6 +470,7 @@ begin
   return coalesce((select jsonb_agg(jsonb_build_object(
       'id', r.id, 'name', r.name, 'phone', r.phone, 'owner_name', r.owner_name, 'city', r.city, 'notes', r.notes,
       'active', r.active, 'expires_at', r.expires_at, 'max_users', r.max_users, 'created_at', r.created_at, 'last_seen', r.last_seen,
+      'plan', r.plan, 'features', r.features, 'message', r.message,
       'users', (select count(*) from public.rms_users x where x.restaurant_id = r.id),
       'managers', (select coalesce(jsonb_agg(jsonb_build_object('id', x.id, 'name', x.name, 'username', x.username)), '[]'::jsonb)
                    from public.rms_users x where x.restaurant_id = r.id and x.role = 'مدير'),
@@ -474,7 +481,7 @@ begin
     ) order by r.created_at desc) from public.rms_restaurants r), '[]'::jsonb);
 end $$;
 
--- p_r: {id?, name, phone, owner_name, city, notes, active, expires_at, max_users,
+-- p_r: {id?, name, phone, owner_name, city, notes, active, expires_at, max_users, plan, features, message,
 --       manager: {name, username, password}}  (المدير مطلوب عند الإنشاء فقط)
 create or replace function public.rms_provider_restaurant_save(p_token text, p_r jsonb) returns jsonb
 language plpgsql security definer set search_path = public, extensions
@@ -491,10 +498,12 @@ begin
     if uname !~ '^[a-z0-9._-]{3,32}$' then raise exception 'USERNAME'; end if;
     if exists (select 1 from public.rms_users where username = uname) then raise exception 'TAKEN'; end if;
     perform public.rms_check_password(mg->>'password');
-    insert into public.rms_restaurants (name, phone, owner_name, city, notes, active, expires_at, max_users)
+    insert into public.rms_restaurants (name, phone, owner_name, city, notes, active, expires_at, max_users, plan, features, message)
     values (trim(p_r->>'name'), coalesce(p_r->>'phone', ''), coalesce(p_r->>'owner_name', ''), coalesce(p_r->>'city', ''),
             coalesce(p_r->>'notes', ''), coalesce((p_r->>'active')::boolean, true),
-            coalesce((p_r->>'expires_at')::timestamptz, now() + interval '30 days'), coalesce((p_r->>'max_users')::int, 25))
+            coalesce((p_r->>'expires_at')::timestamptz, now() + interval '30 days'), coalesce((p_r->>'max_users')::int, 25),
+            coalesce(p_r->>'plan', ''), case when jsonb_typeof(p_r->'features') = 'object' then p_r->'features' else '{}'::jsonb end,
+            coalesce(p_r->>'message', ''))
     returning id into rid;
     insert into public.rms_users (restaurant_id, username, pass_hash, name, role)
     values (rid, uname, extensions.crypt(mg->>'password', extensions.gen_salt('bf')),
@@ -507,7 +516,10 @@ begin
       city = coalesce(p_r->>'city', city), notes = coalesce(p_r->>'notes', notes),
       active = coalesce((p_r->>'active')::boolean, active),
       expires_at = coalesce((p_r->>'expires_at')::timestamptz, expires_at),
-      max_users = coalesce((p_r->>'max_users')::int, max_users)
+      max_users = coalesce((p_r->>'max_users')::int, max_users),
+      plan = coalesce(p_r->>'plan', plan),
+      features = case when jsonb_typeof(p_r->'features') = 'object' then p_r->'features' else features end,
+      message = coalesce(p_r->>'message', message)
     where id = rid;
     if not found then raise exception 'NOT_FOUND'; end if;
     perform public.rms_add_log(rid, 'المزوّد', 'تعديل الاشتراك',

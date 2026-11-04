@@ -17,8 +17,29 @@ const DEF_SETTINGS={
   deliveryFee:2000, minDelivery:10000, zones:[{name:'المنطقة 1',fee:2000}],
   autoDeduct:true, sellOutOfStock:true, lowAlert:true,
   openingCash:100000, closeShift:true, pointsPer:1000,
+  // طريقة العمل
+  payMethods:[
+    {id:'cash',name:'نقدي',color:'#2f9e6b',icon:'banknote',on:true,cash:true},
+    {id:'card',name:'بطاقة',color:'#3b6fd8',icon:'card',on:true},
+    {id:'wallet',name:'محفظة',color:'#1f8a8a',icon:'phone',on:true},
+    {id:'credit',name:'آجل',color:'#b7791f',icon:'book',on:false},
+  ],
+  typeNames:{'صالة':'صالة','سفري':'سفري','توصيل':'توصيل'},
+  serviceBy:{'صالة':10,'سفري':0,'توصيل':0},
+  taxIncluded:false, taxNo:'',
+  numStart:1, numReset:'never', numPrefix:'#',
+  expenseCats:['إيجار','رواتب','كهرباء','مولدة','غاز','ماء','مواد تنظيف','صيانة','تسويق','نقل','أخرى'],
+  wasteReasons:['تالف','منتهي الصلاحية','سقط / انسكب','خطأ تحضير','وجبة موظفين','أخرى'],
+  units:['كغم','غرام','لتر','قطعة','علبة','كرتون','ربطة','كيس'],
+  // شكل البرنامج (لكل أجهزة المطعم)
+  ui:{accent:'',radius:'m',density:'normal',tile:'m',showPics:true,cartSide:'end',navOrder:[],navHidden:[],
+      dash:{kpis:true,hourly:true,top:true,live:true,stock:true}},
+  // الفاتورة المطبوعة
+  receipt:{logo:true,name:true,branch:true,phone:true,address:true,taxNo:false,header:true,orderNo:true,date:true,cashier:true,
+    table:true,customer:true,itemPrice:true,service:true,pay:true,footer:true,font:12,copies:1,extra:''},
+  ticketFont:15,
 };
-const EXPENSE_CATS=['إيجار','رواتب','كهرباء','مولدة','غاز','ماء','مواد تنظيف','صيانة','تسويق','نقل','أخرى'];
+const EXPENSE_CATS=DEF_SETTINGS.expenseCats;
 
 /* ============ الأدوار والصلاحيات ============ */
 const ROLES=['مدير','كاشير','ويتر','طباخ','سائق'];
@@ -144,7 +165,17 @@ function seedOrders(){
 
 // بيانات محفوظة بنسخة أقدم: نضيف ما استجد بقيمه الافتراضية
 function migrate(){
-  S.settings={...structuredClone(DEF_SETTINGS),...S.settings};
+  const old=S.settings||{};
+  S.settings={...structuredClone(DEF_SETTINGS),...old};
+  const t=S.settings;
+  // الإعدادات المتداخلة تُكمَّل بقيمها الافتراضية
+  t.ui={...DEF_SETTINGS.ui,...old.ui,dash:{...DEF_SETTINGS.ui.dash,...old.ui?.dash}};
+  t.receipt={...DEF_SETTINGS.receipt,...old.receipt};
+  t.typeNames={...DEF_SETTINGS.typeNames,...old.typeNames};
+  // من الإصدار السابق: طرق الدفع كانت مفاتيح ثابتة، والخدمة رقماً واحداً للصالة
+  if(!old.payMethods&&old.pays) t.payMethods=DEF_SETTINGS.payMethods.map(m=>({...m,on:old.pays[m.name]??m.on}));
+  if(!old.serviceBy&&old.service!=null) t.serviceBy={'صالة':+old.service||0,'سفري':0,'توصيل':0};
+  if(old.receipt===undefined&&old.showLogo===false) t.receipt.logo=false;
   delete S.settings.tablesCount;
   S.perms=S.perms||structuredClone(DEF_PERMS);
   if(!S.floors){
@@ -431,6 +462,8 @@ function applyOp(s,op){
   if(op.type==='order'){
     const o=structuredClone(op.order);
     if(byUid(o.uid)) return;
+    // الترقيم: يبدأ من رقم يحدده المطعم، ويمكن أن يرجع للبداية كل يوم
+    if(s.settings.numReset==='daily'){const d=new Date(o.createdAt).toDateString();if(s.numDay!==d){s.numDay=d;s.nextId=+s.settings.numStart||1}}
     o.id=s.nextId++; s.orders.push(o);
     deduct(s,o,1);
     if(o.table){const t=s.tables.find(t=>t.id===o.table);if(t&&(t.status==='free'||t.status==='res'))t.status='busy'}
@@ -493,14 +526,21 @@ const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const item=id=>S.menu.find(m=>m.id===id);
 const sub=o=>o.items.reduce((s,l)=>s+(l.price??item(l.id)?.price??0)*l.qty,0);
-// تفصيل الفاتورة: خصم، خدمة (صالة فقط)، ضريبة، توصيل، ثم التقريب
+// تفصيل الفاتورة: خصم، خدمة حسب نوع الطلب، ضريبة (مضافة أو داخل السعر)، توصيل، ثم التقريب
+const svcRate=type=>+(st().serviceBy?.[type]??0);
 function calc(o){
   const s=sub(o), d=s*(o.discount||0)/100, base=s-d;
-  const sv=o.type==='صالة'?base*st().service/100:0, tx=base*(st().tax||0)/100;
+  const sv=base*svcRate(o.type)/100, rate=+st().tax||0, incl=!!st().taxIncluded;
+  const tx=incl?(base+sv)*rate/(100+rate):(base+sv)*rate/100;
   const fee=o.type==='توصيل'?(o.fee??st().deliveryFee):0;
-  let t=base+sv+tx+fee; const r=+st().roundTo; if(r) t=Math.round(t/r)*r;
-  return {s,d,sv,tx,fee,t};
+  let t=base+sv+(incl?0:tx)+fee; const r=+st().roundTo; if(r) t=Math.round(t/r)*r;
+  return {s,d,sv,tx,fee,t,incl};
 }
+const typeName=k=>st().typeNames?.[k]||k;
+const no=o=>(st().numPrefix??'#')+(o?.id??'');
+const payMethods=()=>st().payMethods||[];
+const isCash=name=>!!payMethods().find(m=>m.name===name)?.cash||(!payMethods().some(m=>m.name===name)&&name==='نقدي');
+const taxLabel=c=>c.incl?`منها ضريبة ${num(st().tax)}%`:`ضريبة ${num(st().tax)}%`;
 const total=o=>o.status==='void'?0:calc(o).t;
 const costOf=m=>Object.entries(m.recipe||{}).reduce((s,[k,v])=>s+(S.inventory.find(i=>i.id===k)?.cost||0)*v,0);
 const canMake=m=>Object.entries(m.recipe||{}).every(([k,v])=>(S.inventory.find(i=>i.id===k)?.qty??Infinity)>=v);
@@ -544,46 +584,85 @@ function resizeImage(file,max=480){
 
 /* ============ الطباعة ============ */
 // تُطبع الفاتورة وتذكرة المطبخ من إطار مخفي بعرض ورق الطابعة الحرارية (80 أو 58 ملم)
-function printHtml(body){
-  const w=st().receiptWidth==='58'?58:80;
+function printHtml(body,{font,copies=1}={}){
+  const w=st().receiptWidth==='58'?58:80, fs=font||st().receipt?.font||12;
   const f=document.createElement('iframe');
   f.style.cssText='position:fixed;width:0;height:0;border:0;left:-9999px';
   document.body.appendChild(f);
+  const one=`<div class="copy">${body}</div>`;
   f.srcdoc=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
     @page{size:${w}mm auto;margin:3mm}
-    body{font-family:Tahoma,Arial,sans-serif;font-size:12px;color:#000;margin:0;width:${w-6}mm}
+    body{font-family:Tahoma,Arial,sans-serif;font-size:${fs}px;color:#000;margin:0;width:${w-6}mm}
     .c{text-align:center}.r{display:flex;justify-content:space-between;gap:6px}.b{font-weight:bold}
-    hr{border:0;border-top:1px dashed #000;margin:6px 0}h1{font-size:16px;margin:2px 0}h2{font-size:20px;margin:4px 0}
-    .big{font-size:15px}.note{font-size:11px}img{max-width:28mm;max-height:20mm}
-  </style></head><body>${body}</body></html>`;
+    hr{border:0;border-top:1px dashed #000;margin:6px 0}h1{font-size:1.35em;margin:2px 0}h2{font-size:1.7em;margin:4px 0}
+    .big{font-size:1.25em}.note{font-size:.9em}img{max-width:28mm;max-height:20mm}.copy+.copy{page-break-before:always}
+  </style></head><body>${one.repeat(Math.max(1,Math.min(3,+copies||1)))}</body></html>`;
   f.onload=()=>{setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){}setTimeout(()=>f.remove(),60000)},150)};
 }
+// الفاتورة: كل سطر فيها يمكن إظهاره أو إخفاؤه من الإعدادات
 function receiptHtml(o,{title='فاتورة',orders}={}){
-  const s=st(), c=calc(o), logo=imgSrc(s.logoImg);
-  const lines=o.items.map(l=>{const m=item(l.id),p=l.price??m?.price??0;return `<div class="r"><span>${num(l.qty)} × ${esc(l.name||m?.name||'')}</span><span>${num(p*l.qty)}</span></div>`}).join('');
-  return `<div class="c">${s.showLogo?(logo?`<img src="${logo}"><br>`:`<div style="font-size:22px">${esc(s.logo)}</div>`):''}
-    <h1>${esc(s.name)}</h1>${esc(s.branch)}${s.phone?' · '+esc(s.phone):''}${s.address?'<br>'+esc(s.address):''}
-    ${s.receiptHeader?'<br>'+esc(s.receiptHeader):''}</div><hr>
-    <div class="r"><span>${title} ${orders?orders.map(x=>'#'+x.id).join(' '):'#'+(o.id??'')}</span><span>${esc(o.type)}${o.table?' · طاولة '+o.table:''}</span></div>
-    <div class="r note"><span>${dateStr(o.createdAt||Date.now())} ${timeStr(o.createdAt||Date.now())}</span><span>${esc(o.paidBy||o.by||'')}</span></div>
-    ${o.customer?.name||o.customer?.phone?`<div class="note">الزبون: ${esc(o.customer.name||'')} ${esc(o.customer.phone||'')}${o.customer.address?'<br>العنوان: '+esc(o.customer.address):''}</div>`:''}
+  const s=st(), R={...DEF_SETTINGS.receipt,...s.receipt}, c=calc(o), logo=imgSrc(s.logoImg);
+  const lines=o.items.map(l=>{const m=item(l.id),p=l.price??m?.price??0;return `<div class="r"><span>${num(l.qty)} × ${esc(l.name||m?.name||'')}${R.itemPrice&&l.qty>1?` <span class="note">(${num(p)})</span>`:''}</span><span>${num(p*l.qty)}</span></div>`}).join('');
+  const head=[R.name?`<h1>${esc(s.name)}</h1>`:'',R.branch&&s.branch?esc(s.branch):'',R.phone&&s.phone?esc(s.phone):''].filter(Boolean);
+  return `<div class="c">${R.logo?(logo?`<img src="${logo}"><br>`:s.logo&&s.logo!=='🍽'?`<div style="font-size:22px">${esc(s.logo)}</div>`:''):''}
+    ${head.shift()||''}${head.join(' · ')}${R.address&&s.address?'<br>'+esc(s.address):''}
+    ${R.taxNo&&s.taxNo?'<br>الرقم الضريبي: '+esc(s.taxNo):''}
+    ${R.header&&s.receiptHeader?'<br>'+esc(s.receiptHeader):''}</div><hr>
+    ${R.orderNo||R.table?`<div class="r"><span>${R.orderNo?`${title} ${orders?orders.map(no).join(' '):no(o)}`:title}</span><span>${R.table?esc(typeName(o.type))+(o.table?' · طاولة '+o.table:''):''}</span></div>`:''}
+    ${R.date||R.cashier?`<div class="r note"><span>${R.date?dateStr(o.createdAt||Date.now())+' '+timeStr(o.createdAt||Date.now()):''}</span><span>${R.cashier?esc(o.paidBy||o.by||''):''}</span></div>`:''}
+    ${R.customer&&(o.customer?.name||o.customer?.phone)?`<div class="note">الزبون: ${esc(o.customer.name||'')} ${esc(o.customer.phone||'')}${o.customer.address?'<br>العنوان: '+esc(o.customer.address):''}</div>`:''}
     <hr>${lines}<hr>
     <div class="r"><span>المجموع</span><span>${num(c.s)}</span></div>
     ${c.d?`<div class="r"><span>خصم ${num(o.discount)}%</span><span>− ${num(c.d)}</span></div>`:''}
-    ${c.sv?`<div class="r"><span>خدمة ${num(s.service)}%</span><span>${num(c.sv)}</span></div>`:''}
-    ${c.tx?`<div class="r"><span>ضريبة ${num(s.tax)}%</span><span>${num(c.tx)}</span></div>`:''}
+    ${R.service&&c.sv?`<div class="r"><span>خدمة ${num(svcRate(o.type))}%</span><span>${num(c.sv)}</span></div>`:''}
+    ${c.tx?`<div class="r"><span>${taxLabel(c)}</span><span>${num(c.tx)}</span></div>`:''}
     ${c.fee?`<div class="r"><span>أجور التوصيل</span><span>${num(c.fee)}</span></div>`:''}
     <div class="r b big"><span>الإجمالي</span><span>${fmt(c.t)}</span></div>
-    ${o.pay?`<div class="r"><span>الدفع</span><span>${esc(o.pay)}</span></div>`:'<div class="c b">غير مدفوع</div>'}
-    <hr><div class="c">${esc(s.receiptFooter)}</div>`;
+    ${R.pay?(o.pay?`<div class="r"><span>الدفع</span><span>${esc(o.pay)}</span></div>`:'<div class="c b">غير مدفوع</div>'):''}
+    ${R.extra?`<hr><div class="c note">${esc(R.extra).replace(/\n/g,'<br>')}</div>`:''}
+    ${R.footer&&s.receiptFooter?`<hr><div class="c">${esc(s.receiptFooter)}</div>`:''}`;
 }
-function printReceipt(o,opts){printHtml(receiptHtml(o,opts))}
+function printReceipt(o,opts){printHtml(receiptHtml(o,opts),{copies:st().receipt?.copies})}
 function printTicket(o){
-  printHtml(`<div class="c"><h2>#${o.id}</h2><div class="big b">${esc(o.type)}${o.table?'، '+esc(tableName(o.table)):''}</div>
+  printHtml(`<div class="c"><h2>${esc(no(o))}</h2><div class="big b">${esc(typeName(o.type))}${o.table?'، '+esc(tableName(o.table)):''}</div>
     <div>${timeStr(o.createdAt)} · ${esc(o.by||'')}</div></div><hr>
-    ${o.items.map(l=>`<div class="big b">${num(l.qty)} × ${esc(item(l.id)?.name||'')}</div>${l.note?`<div>* ${esc(l.note)}</div>`:''}`).join('')}
-    ${o.note?`<hr><div>ملاحظة: ${esc(o.note)}</div>`:''}`);
+    ${o.items.map(l=>`<div class="big b">${num(l.qty)} × ${esc(l.name||item(l.id)?.name||'')}</div>${l.note?`<div>* ${esc(l.note)}</div>`:''}`).join('')}
+    ${o.note?`<hr><div>ملاحظة: ${esc(o.note)}</div>`:''}`,{font:st().ticketFont||15});
 }
+// نص الفاتورة لإرسالها على واتساب
+function receiptText(o){
+  const c=calc(o);
+  return [st().name,`${no(o)} · ${typeName(o.type)}${o.table?' · طاولة '+o.table:''}`,dateStr(o.createdAt)+' '+timeStr(o.createdAt),'',
+    ...o.items.map(l=>`${l.qty} × ${l.name||item(l.id)?.name||''}: ${num((l.price??item(l.id)?.price??0)*l.qty)}`),'',
+    c.d?`خصم: ${num(c.d)}`:'',c.sv?`خدمة: ${num(c.sv)}`:'',c.tx?`${taxLabel(c)}: ${num(c.tx)}`:'',c.fee?`توصيل: ${num(c.fee)}`:'',
+    `الإجمالي: ${fmt(c.t)}`,st().receiptFooter||''].filter((x,i,a)=>x!==''||a[i-1]!=='').join('\n');
+}
+function shareWhatsApp(o){
+  const ph=(o.customer?.phone||'').replace(/\D/g,'').replace(/^0/,'964');
+  open(`https://wa.me/${ph}?text=${encodeURIComponent(receiptText(o))}`,'_blank','noopener');
+}
+
+/* ============ شكل البرنامج ============
+ * لون المطعم والزوايا والكثافة: تُطبَّق على كل أجهزة المطعم من إعداداته. */
+function hexRgb(h){const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return null;const n=parseInt(m[1],16);return [n>>16&255,n>>8&255,n&255]}
+function applyLook(){
+  if(!S) return;
+  const u=st().ui||{}, r=document.documentElement, rgb=hexRgb(u.accent);
+  r.dataset.radius=u.radius||'m'; r.dataset.density=u.density||'normal';
+  r.dataset.pics=u.showPics===false?'off':'on'; r.dataset.tile=u.tile||'m'; r.dataset.cart=u.cartSide||'end';
+  const vars=['--primary','--primary-soft','--grad','--grad-shadow','--chart','--hl','--hl-text','--hl-shadow','--ring','--on-grad'];
+  if(!rgb){vars.forEach(v=>r.style.removeProperty(v));return}
+  const [R,G,B]=rgb, c=u.accent, light=(R*299+G*587+B*114)/1000>165;
+  const set={'--primary':c,'--primary-soft':`rgba(${R},${G},${B},.15)`,'--grad':c,'--grad-shadow':`0 8px 22px rgba(${R},${G},${B},.28)`,
+    '--chart':c,'--hl':`rgba(${R},${G},${B},.16)`,'--hl-text':c,'--hl-shadow':`inset 0 0 0 1px rgba(${R},${G},${B},.35)`,'--ring':`${R},${G},${B}`,'--on-grad':light?'#111':'#fff'};
+  Object.entries(set).forEach(([k,v])=>r.style.setProperty(k,v));
+}
+
+/* ============ ميزات الاشتراك ============
+ * المزوّد يحدد لكل مطعم الميزات المفتوحة. المفتاح غير الموجود يعني «مفتوحة». */
+const FEATURES=[['kds','شاشة المطبخ'],['tables','الطاولات والحساب'],['waiterApp','تطبيق الويتر'],['delivery','التوصيل'],['reservations','الحجوزات'],
+  ['inventory','المخزون والوصفات'],['customers','العملاء والولاء'],['expenses','المصاريف'],['reports','التقارير'],['log','سجل العمليات']];
+const feat=k=>MODE!=='cloud'||SESSION?.user?.restaurant?.features?.[k]!==false;
 // تنزيل ملف (CSV للتقارير، JSON للنسخ الاحتياطي)
 function downloadFile(name,text,type='text/plain'){
   const a=document.createElement('a');

@@ -33,6 +33,9 @@ dialog{width:min(600px,calc(100vw - 24px))}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
 .plans button{padding:12px 6px;border-radius:14px;border:1px solid var(--btn-edge);background:var(--btn-bg);font-weight:700}
 .plans button.sel{background:var(--hl);color:var(--hl-text);box-shadow:var(--hl-shadow)}
+.feats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px 12px;margin-top:10px}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.sub-title{font-weight:800;font-size:14px;color:var(--muted);margin:18px 0 8px}
 .cred{background:var(--surface-2);border-radius:16px;padding:14px;line-height:2;white-space:pre-line}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
@@ -84,7 +87,7 @@ function draw(){
     <span class="spacer"></span><button class="btn" onclick="load()"><i class="ic ic-refresh"></i> تحديث</button></div>
   <div class="card table-wrap"><table><tr><th>المطعم</th><th>المدير (الدخول)</th><th>الموظفون</th><th>طلبات 30 يوماً</th><th>آخر نشاط</th><th>الاشتراك</th><th>الحالة</th><th></th></tr>
   ${rows.map(r=>{const st=stateOf(r),d=days(r);return `<tr>
-    <td><b>${esc(r.name)}</b><div class="sub">${esc(r.owner_name)}${r.phone?' · <span class="ltr">'+esc(r.phone)+'</span>':''}${r.city?' · '+esc(r.city):''}</div>${r.notes?`<div class="sub"><i class="ic ic-note"></i> ${esc(r.notes)}</div>`:''}</td>
+    <td><b>${esc(r.name)}</b>${r.plan?` <span class="badge b-blue">${esc(r.plan)}</span>`:''}<div class="sub">${esc(r.owner_name)}${r.phone?' · <span class="ltr">'+esc(r.phone)+'</span>':''}${r.city?' · '+esc(r.city):''}</div>${r.notes?`<div class="sub"><i class="ic ic-note"></i> ${esc(r.notes)}</div>`:''}</td>
     <td class="ltr" style="text-align:end">${r.managers.map(m=>esc(m.username)).join('<br>')||''}</td>
     <td>${num(r.users)} / ${num(r.max_users)}</td><td>${num(r.orders_30d)}</td><td class="sub">${ago(r.last_seen)}</td>
     <td>${dstr(r.expires_at)}<div class="sub">${d>=0?`باقي ${num(d)} يوم`:`انتهى قبل ${num(-d)} يوم`}</div></td>
@@ -133,7 +136,12 @@ function editDlg(id){
     <label>المدينة<input type="text" id="rc" value="${esc(r?.city||'')}"></label>
     <label>الحد الأقصى للموظفين<input type="number" id="rm" class="ltr" min="1" value="${r?.max_users||25}"></label>
     <label class="full">ملاحظات (لك فقط)<input type="text" id="rt" value="${esc(r?.notes||'')}" placeholder="السعر المتفق عليه، طريقة الدفع…"></label>
+    <label class="full">رسالة تظهر للمطعم في لوحة التحكم (اختياري)<input type="text" id="rmsg" value="${esc(r?.message||'')}" placeholder="مثلاً: تم تحديث البرنامج، أو تذكير بموعد الدفع"></label>
   </div>
+  <div class="sub-title">الباقة والميزات</div>
+  <div class="plans" id="planBtns">${Object.keys(PLANS).map(k=>`<button type="button" class="${(r?.plan||'كاملة')===k?'sel':''}" onclick="pickPlan('${k}')">${k}</button>`).join('')}</div>
+  <input type="hidden" id="rplan" value="${esc(r?.plan||'كاملة')}">
+  <div class="feats">${FEATURES.map(([k,t])=>`<label class="chk"><input type="checkbox" data-f="${k}" ${r?.features?.[k]===false?'':'checked'} onchange="$('#rplan').value='مخصصة';markPlan('مخصصة')"> ${t}</label>`).join('')}</div>
   ${r?'':`<div class="sub-title">مدة الاشتراك</div>
   <div class="plans">${[[0.5,'تجربة 14 يوم'],[1,'شهر'],[3,'3 أشهر'],[6,'6 أشهر'],[12,'سنة']].map(([m,t])=>`<button type="button" class="${m===1?'sel':''}" onclick="plan=${m};this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${t}</button>`).join('')}</div>
   <div class="sub-title">حساب مدير المطعم</div>
@@ -143,8 +151,22 @@ function editDlg(id){
   <p class="muted" style="font-size:12.5px"><i class="ic ic-info"></i> اسم المستخدم بالإنجليزي والأرقام فقط (. _ - مسموحة)، وفريد على مستوى البرنامج. المدير يضيف موظفيه بنفسه من لوحة المطعم.</p>`}`,
   `${r?`<button class="btn danger" onclick="delDlg('${r.id}')">حذف المطعم</button>`:''}<span class="spacer"></span><button class="btn" onclick="closeDlg()">إلغاء</button><button class="btn primary" id="sv" onclick="saveEdit(${r?`'${r.id}'`:'null'})">${r?'حفظ':'إنشاء المطعم'}</button>`);
 }
+// الباقات الجاهزة: كل باقة تفتح مجموعة ميزات، ويمكن تعديلها يدوياً لكل مطعم
+const PLANS={
+  'أساسية':['kds','tables'],
+  'متقدمة':['kds','tables','waiterApp','delivery','reservations','customers','reports'],
+  'كاملة':FEATURES.map(f=>f[0]),
+  'مخصصة':null,
+};
+function markPlan(k){document.querySelectorAll('#planBtns button').forEach(b=>b.classList.toggle('sel',b.textContent===k))}
+function pickPlan(k){
+  $('#rplan').value=k; markPlan(k);
+  if(PLANS[k]) document.querySelectorAll('[data-f]').forEach(c=>c.checked=PLANS[k].includes(c.dataset.f));
+}
+const readFeatures=()=>Object.fromEntries([...document.querySelectorAll('[data-f]')].map(c=>[c.dataset.f,c.checked]));
 async function saveEdit(id){
-  const o={name:v('rn'),owner_name:v('ro'),phone:v('rp'),city:v('rc'),max_users:+v('rm')||25,notes:v('rt')};
+  const o={name:v('rn'),owner_name:v('ro'),phone:v('rp'),city:v('rc'),max_users:+v('rm')||25,notes:v('rt'),
+    message:v('rmsg'),plan:$('#rplan').value,features:readFeatures()};
   if(!o.name) return toast('أدخل اسم المطعم');
   if(id){o.id=id;await saveR(o,'✓ تم الحفظ');return closeDlg()}
   const mg={name:v('mn')||'المدير',username:v('mu').toLowerCase(),password:v('mp')};

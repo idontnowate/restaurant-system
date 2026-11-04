@@ -306,3 +306,34 @@ dialog{border-radius:14px}
 .qty button{border-radius:8px}
 .toast{border-radius:10px}
 .img-drop{border-radius:10px}
+
+/* ================= تخصيص الشكل (من إعدادات المطعم) ================= */
+/* الزوايا */
+[data-radius="s"] .card,[data-radius="s"] .item,[data-radius="s"] .tbl,[data-radius="s"] dialog{border-radius:6px}
+[data-radius="s"] .btn,[data-radius="s"] .pills button,[data-radius="s"] .seg,[data-radius="s"] .seg button,[data-radius="s"] input,[data-radius="s"] select,[data-radius="s"] textarea,[data-radius="s"] .item .pic{border-radius:5px}
+[data-radius="l"] .card,[data-radius="l"] .item,[data-radius="l"] .tbl{border-radius:22px}
+[data-radius="l"] dialog{border-radius:26px}
+[data-radius="l"] .btn,[data-radius="l"] .pills button,[data-radius="l"] .seg,[data-radius="l"] .seg button{border-radius:999px}
+[data-radius="l"] input,[data-radius="l"] select,[data-radius="l"] textarea{border-radius:14px}
+[data-radius="l"] .item .pic{border-radius:16px}
+/* الكثافة: المضغوط يُظهر بيانات أكثر في الشاشة */
+[data-density="compact"] .card{padding:11px 12px}
+[data-density="compact"] .btn{padding:5px 12px;min-height:32px}
+[data-density="compact"] .btn.sm{min-height:26px;padding:3px 10px}
+[data-density="compact"] th,[data-density="compact"] td{padding:6px 8px}
+[data-density="compact"] .grid{gap:10px}
+[data-density="compact"] input[type=text],[data-density="compact"] input[type=number],[data-density="compact"] input[type=tel],[data-density="compact"] input[type=search],[data-density="compact"] select{min-height:34px;padding:5px 10px}
+[data-density="compact"] .items{gap:8px}
+[data-density="compact"] .item .nm{margin-top:4px;min-height:2.3em}
+[data-density="compact"] .tbl{padding:12px 8px 10px}
+[data-density="compact"] .tbl b{width:40px;height:40px;font-size:18px}
+/* حجم بطاقات الأصناف في نقطة البيع وتطبيق الويتر */
+[data-tile="s"] .items{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+[data-tile="s"] .item .pic{font-size:30px}
+[data-tile="s"] .item .nm{font-size:13px}
+[data-tile="l"] .items{grid-template-columns:repeat(auto-fill,minmax(185px,1fr))}
+[data-tile="l"] .item .pic{font-size:54px}
+[data-tile="l"] .item .nm{font-size:16px}
+/* إخفاء صور الأصناف: بطاقات نصية أسرع للكاشير */
+[data-pics="off"] .item .pic{display:none}
+[data-pics="off"] .item{justify-content:center;min-height:86px}

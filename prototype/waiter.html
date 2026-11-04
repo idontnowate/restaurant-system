@@ -88,9 +88,11 @@ const ME=()=>MODE==='cloud'?{...SESSION.user,on:true}:S.staff.find(p=>p.id===P.w
 let known={};   // آخر حالة معروفة لطلباتي: لتنبيه الويتر عندما يجهز طلبه
 
 function render(){
+  if(S) applyLook();
   if(!$('#view')) return;   // الصفحة استُبدلت (انتهاء الاشتراك أو الجلسة)
   $('#rName').textContent=st().name; $('#logo').innerHTML=logoHtml();
   const me=ME();
+  if(!feat('waiterApp')){$('#view').innerHTML='<div class="empty card" style="margin-top:12px">تطبيق الويتر غير مشمول في اشتراك المطعم.<br>تواصل مع مزوّد البرنامج لتفعيله.</div>';$('#tabbar').hidden=true;$('#cartbarHost').innerHTML='';return}
   if(!me||!can(me.role,'waiterApp')){ui.screen='login'}
   $('#wName').textContent=me?me.name:'اختر اسمك للبدء';
   $('#view').innerHTML=SCREENS[ui.screen]();
@@ -144,7 +146,7 @@ order(){
 mine(){
   const list=myOrders(), lbl={new:['بانتظار المطبخ','b-blue'],preparing:['قيد التحضير','b-amber'],ready:['جاهز، استلمه <i class="ic ic-checkc"></i>','b-green']};
   return `<div class="title-row"><h2>طلباتي الجارية</h2><span class="muted">${num(list.length)}</span></div>
-  ${list.map(o=>`<div class="card order ${o.status==='ready'?'ready':''}"><header><b>#${o.id} · طاولة ${o.table}</b><span class="badge ${lbl[o.status][1]}">${lbl[o.status][0]}</span></header>
+  ${list.map(o=>`<div class="card order ${o.status==='ready'?'ready':''}"><header><b>${esc(no(o))} · طاولة ${o.table}</b><span class="badge ${lbl[o.status][1]}">${lbl[o.status][0]}</span></header>
     <ul>${o.items.map(l=>`<li>${num(l.qty)} × ${esc(l.name||item(l.id)?.name||'')}${l.note?` <span style="color:var(--red)">(${esc(l.note)})</span>`:''}</li>`).join('')}</ul>
     <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px">${timeStr(o.createdAt)} · منذ ${num(mins(o.createdAt))} د</span>
     ${o.status==='ready'?`<button class="btn sm primary" onclick="delivered('${o.uid}')">تم التقديم للزبون</button>`:''}</div></div>`).join('')
@@ -182,7 +184,7 @@ function renderCart(){
      <div><b>${esc(m.name)}</b><div class="muted" style="font-size:13px">${fmt(m.price*l.qty)}</div></div>
      <div class="qty"><button onclick="cq(${i},-1)">−</button><span>${num(l.qty)}</span><button onclick="cq(${i},1)">+</button></div>
      <input type="text" placeholder="ملاحظة للمطبخ (بدون بصل، حار…)" value="${esc(l.note)}" onchange="ui.cart[${i}].note=this.value"></div>`}).join('')}</div>
-   ${c.sv?`<div class="sum muted"><span>خدمة ${num(st().service)}%</span><span>${fmt(c.sv)}</span></div>`:''}
+   ${c.sv?`<div class="sum muted"><span>خدمة ${num(svcRate('صالة'))}%</span><span>${fmt(c.sv)}</span></div>`:''}
    <div class="sum total"><span>الإجمالي</span><span>${fmt(c.t)}</span></div>
    <button class="btn primary lg block" style="margin-top:12px" id="sendBtn" onclick="send()"><i class="ic ic-send"></i> إرسال للمطبخ</button>`;
 }
@@ -196,7 +198,7 @@ async function send(){
   const saved=S.orders.find(x=>x.uid===o.uid);
   known[o.uid]='new';
   $('#cartDlg').close(); ui.cart=[]; ui.screen='tables'; render();
-  toast(`✓ الطلب #${saved?.id} وصل للمطبخ`); if(navigator.vibrate) navigator.vibrate([30,40,30]);
+  toast(`✓ الطلب ${no(saved)} وصل للمطبخ`); if(navigator.vibrate) navigator.vibrate([30,40,30]);
 }
 async function delivered(u){try{await action({type:'status',uid:u,status:'done'})}catch(e){return toast('<i class="ic ic-alert"></i> لا يوجد اتصال')}render()}
 async function setTable(id,s){try{await action({type:'table',id,status:s})}catch(e){return toast('<i class="ic ic-alert"></i> لا يوجد اتصال')}render();toast('تم إبلاغ الكاشير بطلب الحساب')}
